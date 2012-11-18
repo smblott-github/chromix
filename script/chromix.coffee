@@ -1,6 +1,6 @@
 
 # #####################################################################
-# Setup and constants.
+# Imports, arguments and constants.
 
 WebSocket = require "ws"
 conf      = require "optimist" 
@@ -64,6 +64,7 @@ selector = new Selector()
 # Web socket utilities.
 
 # TODO: Use IP address/port for ID?
+#
 createId = -> Math.floor Math.random() * 2000000000
 
 # TODO: Move web socket outside of `wsDo` so that it can be reused.
@@ -71,7 +72,7 @@ createId = -> Math.floor Math.random() * 2000000000
 wsDo = (func, args, callback) ->
   id = createId()
   ws = new WebSocket("ws://#{conf.server}:#{conf.port}/")
-  setTimeout ( -> process.exit 1 ), conf.timeout
+  to = setTimeout ( -> process.exit 1 ), conf.timeout
   msg = [ func, JSON.stringify args ].map(encodeURIComponent).join " "
   ws.on "open", -> ws.send "#{chromi} #{id} #{msg}"
   ws.on "error", (error) -> echoErr JSON.stringify(error), true
@@ -85,8 +86,12 @@ wsDo = (func, args, callback) ->
           # echoErr msg
           true
         when "done"
+          clearTimeout to
+          ws.close()
           callback.apply null, JSON.parse response if callback
         when "error"
+          clearTimeout to
+          ws.close()
           echoErr msg, true
           process.exit 1
         else
@@ -110,7 +115,6 @@ tabCallback = (tab, name, callback) ->
   (response) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
     callback() if callback
-
 
 # #####################################################################
 # Operations:
