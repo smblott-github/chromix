@@ -136,7 +136,7 @@ tabDo = (predicate, process, done=null) ->
         for tab in ( win.tabs.filter (t) -> predicate win, t )
           count += 1
           transit += 1
-          process tab, ->
+          process win, tab, ->
             transit -= 1
             done count if transit == 0
       done count if done and count == 0
@@ -178,8 +178,9 @@ operations =
       return echoErr "invalid load: #{msg}" unless msg and msg.length == 1
       url = msg[0]
       tabDo selector.fetch(url),
-        (tab, callback) ->
-          support.focus tab, callback
+        (win, tab, callback) ->
+          support.focus tab, ->
+            if selector.fetch("file") win, tab then support.reload tab, callback else callback()
         (count) ->
           if count == 0
             ws.do "chrome.tabs.create", [{ url: url }],
@@ -194,7 +195,7 @@ operations =
       return echoErr "invalid with: #{msg}" unless msg and msg.length == 2
       [ what ] = msg.splice 0, 1
       tabDo selector.fetch(what),
-        (tab, callback) ->
+        (win, tab, callback) ->
           cmd = [ term for term in msg ]
           if cmd.length == 1 and support[cmd[0]]
             support[cmd[0]] tab, callback
