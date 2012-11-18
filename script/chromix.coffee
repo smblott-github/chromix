@@ -218,18 +218,20 @@ operations =
         callback() if callback
 
   bookmarks: (msg, callback=null, bookmark=null) ->
-    if bookmark
-      if bookmark.url and bookmark.title
-        echo "#{bookmark.url} #{bookmark.title}"
-      if bookmark.children
-        bookmark.children.forEach (bmark) =>
-          @bookmarks msg, callback, bmark if bmark
-    else
+    if not bookmark
+      # First time through.
       ws.do "chrome.bookmarks.getTree", [],
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
             @bookmarks msg, callback, bmark if bmark
           callback()
+    else
+      # All other (recursive) times through.
+      if bookmark.url and bookmark.title
+        echo "#{bookmark.url} #{bookmark.title}"
+      if bookmark.children
+        bookmark.children.forEach (bmark) =>
+          @bookmarks msg, callback, bmark if bmark
 
 # #####################################################################
 # Execute command line arguments.
