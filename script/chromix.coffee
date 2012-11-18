@@ -167,6 +167,11 @@ support =
   close:
     ( tab, callback=null) ->
       ws.do "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
+
+  # Blank tab.
+  blank:
+    ( tab, callback=null) ->
+      ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: "http://localhost/blank.html" } ], tabCallback tab, "blank", callback
         
 operations =
 
@@ -211,6 +216,20 @@ operations =
       (response) ->
         process.exit 1 unless response
         callback() if callback
+
+  bookmarks: (msg, callback=null, bookmark=null) ->
+    if bookmark
+      if bookmark.url and bookmark.title
+        echo "#{bookmark.url} #{bookmark.title}"
+      if bookmark.children
+        bookmark.children.forEach (bmark) =>
+          @bookmarks msg, callback, bmark if bmark
+    else
+      ws.do "chrome.bookmarks.getTree", [],
+        (bookmarks) =>
+          bookmarks.forEach (bmark) =>
+            @bookmarks msg, callback, bmark if bmark
+          callback()
 
 # #####################################################################
 # Execute command line arguments.
