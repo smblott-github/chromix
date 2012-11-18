@@ -113,6 +113,14 @@ tabDo = (predicate, process, done=null) ->
 
 support =
 
+  # Close tab.
+  close:
+    ( tab, callback=null) ->
+      wsDo "chrome.tabs.remove", [ tab.id ],
+        (response) ->
+          echo "done remove: #{tab.id} #{tab.url}"
+          callback() if callback
+        
   # Focus tab.
   focus:
     ( tab, callback=null) ->
@@ -127,7 +135,9 @@ operations =
   # match, then create a new tab and load `url`.
   # When done, call `callback` (if provided).
   load:
-    (url, callback=null) ->
+    (msg, callback=null) ->
+      return echoErr "invalid load: #{msg}" unless msg and msg.length == 1
+      url = msg[0]
       tabDo selector.fetch(url),
         (tab, callback) ->
           support.focus tab, callback
@@ -140,7 +150,21 @@ operations =
           else
             callback() if callback
 
-operations.load conf._[0], -> process.exit 0
+# #####################################################################
+# Execute command line arguments.
+
+msg = conf._
+
+if msg and msg.length == 0
+  # TODO: Ping.
+  true
+
+else if msg and msg[0] and operations[msg[0]]
+  operations[msg[0]] msg.splice(1), -> process.exit 0
+
+else
+  echoErr "invalid command: #{msg}"
+  process.exit 1
 
 # #####################################################################
 # Test.
