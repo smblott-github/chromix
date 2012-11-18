@@ -96,11 +96,15 @@ tabDo = (predicate, process, done=null) ->
   wsDo "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
+      transit = 0
       for win in wins
         for tab in ( win.tabs.filter (t) -> predicate win, t )
-          process tab
           count += 1
-      done count if done
+          transit += 1
+          process tab, ->
+            transit -= 1
+            done count if transit == 0
+      done count if done and count == 0
 
 # #####################################################################
 # Operations:
@@ -125,7 +129,7 @@ operations =
   load:
     (url, callback=null) ->
       tabDo selector.fetch(url),
-        (tab) ->
+        (tab, callback) ->
           support.focus tab, callback
         (count) ->
           if count == 0
@@ -133,6 +137,8 @@ operations =
               (response) ->
                 echo "done create: #{url}"
                 callback() if callback
+          else
+            callback() if callback
 
 operations.load conf._[0], -> process.exit 0
 
