@@ -204,6 +204,13 @@ operations =
           echo "with #{what}: #{count}"
           callback() if callback
 
+  ping: (msg, callback=null) ->
+    return echoErr "invalid ping: #{msg}" unless msg.length == 0
+    ws.do "", [],
+      (response) ->
+        process.exit 1 unless response
+        callback() if callback
+
 # #####################################################################
 # Execute command line arguments.
 
@@ -212,12 +219,8 @@ msg = conf._
 if msg and msg[0] and support[msg[0]] and not operations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
-if msg and msg.length == 0
-  echoErr "can't ping yet :-("
-  process.exit 1
-
-else if msg and msg[0] and operations[msg[0]]
-  operations[msg[0]] msg.splice(1), -> process.exit 0
+if msg and msg[0] and operations[msg[0]]
+  operations[msg[0]] msg.splice(1), ( -> process.exit 0 )
 
 else
   echoErr "invalid command: #{msg}"
