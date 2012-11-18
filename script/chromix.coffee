@@ -224,7 +224,7 @@ operations =
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
             @bookmarks msg, callback, bmark if bmark
-          callback()
+          callback() if callback
     else
       # All other (recursive) times through.
       if bookmark.url and bookmark.title
