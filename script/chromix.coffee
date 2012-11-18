@@ -63,42 +63,72 @@ selector = new Selector()
 # #####################################################################
 # Web socket utilities.
 
-# TODO: Use IP address/port for ID?
-#
-createId = -> Math.floor Math.random() * 2000000000
+class WS
+  constructor: ->
+    @queue = []
+    @ready = false
+    @callbacks = {}
+    @ws = new WebSocket("ws://#{conf.server}:#{conf.port}/")
 
-# TODO: Move web socket outside of `wsDo` so that it can be reused.
-#
-wsDo = (func, args, callback) ->
-  id = createId()
-  ws = new WebSocket("ws://#{conf.server}:#{conf.port}/")
-  to = setTimeout ( -> process.exit 1 ), conf.timeout
-  msg = [ func, JSON.stringify args ].map(encodeURIComponent).join " "
-  ws.on "open", -> ws.send "#{chromi} #{id} #{msg}"
-  ws.on "error", (error) -> echoErr JSON.stringify(error), true
-  ws.on "message",
-    (msg) ->
-      msg = msg.split(/\s+/).map(decodeURIComponent)
-      [ signal, msgId, type, response ] = msg
-      return unless signal == chromiCap and msgId == id.toString()
-      switch type
-        when "info"
-          # echoErr msg
-          true
-        when "done"
-          clearTimeout to
-          ws.close()
-          callback.apply null, JSON.parse response if callback
-        when "error"
-          clearTimeout to
-          ws.close()
-          echoErr msg, true
-          process.exit 1
-        else
-          echoErr msg
+    @ws.on "error",
+      (error) ->
+        echoErr JSON.stringify(error), true
+
+    @ws.on "open",
+      =>
+        @ready = true
+        for callback in @queue
+          callback()
+
+    @ws.on "message",
+      (msg) =>
+        msg = msg.split(/\s+/)
+        [ signal, msgId, type, response ] = msg
+        return unless signal == chromiCap and @callbacks[msgId]
+        switch type
+          when "info"
+            # echoErr msg
+            true
+          when "done"
+            @callback msgId, response
+          when "error"
+            @callback msgId
+          else
+            echoErr msg
+
+  send: (msg, callback) ->
+    id = @createId()
+    f = =>
+      @register id, callback
+      @ws.send "#{chromi} #{id} #{msg}"
+    if @ready then f() else @queue.push f
+
+  register: (id, callback) ->
+    setTimeout ( => @callback id ), conf.timeout
+    @callbacks[id] = callback
+
+  callback: (id, argument=null) ->
+    if @callbacks[id]
+      @callbacks[id] argument
+      delete @callbacks[id]
+
+  do: (func, args, callback) ->
+    msg = [ func, JSON.stringify args ].map(encodeURIComponent).join " "
+    @send msg, (response) ->
+      if callback
+        callback.apply null, JSON.parse decodeURIComponent response
+
+  # TODO: Use IP address/port for ID?
+  #
+  createId: -> Math.floor Math.random() * 2000000000
+
+ws = new WS()
+
+# #####################################################################
+# Tab utilities.
 
 tabDo = (predicate, process, done=null) ->
-  wsDo "chrome.windows.getAll", [{ populate:true }],
+  ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
       transit = 0
@@ -118,25 +148,25 @@ tabCallback = (tab, name, callback) ->
 
 # #####################################################################
 # Operations:
-#   - `support` operations are not available directly.
-#   - `operations` are.
+#   - `support` operations require a tab are not callable directly.
+#   - `operations` the exported operations.
 
 support =
 
   # Focus tab.
   focus:
     ( tab, callback=null) ->
-      wsDo "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
+      ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
         
   # Reload tab.
   reload:
     ( tab, callback=null) ->
-      wsDo "chrome.tabs.reload", [ tab.id, null ], tabCallback tab, "reload", callback
+      ws.do "chrome.tabs.reload", [ tab.id, null ], tabCallback tab, "reload", callback
         
   # Close tab.
   close:
     ( tab, callback=null) ->
-      wsDo "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
+      ws.do "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
         
 operations =
 
@@ -152,7 +182,7 @@ operations =
           support.focus tab, callback
         (count) ->
           if count == 0
-            wsDo "chrome.tabs.create", [{ url: url }],
+            ws.do "chrome.tabs.create", [{ url: url }],
               (response) ->
                 echo "done create: #{url}"
                 callback() if callback
