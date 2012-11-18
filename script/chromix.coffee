@@ -106,6 +106,12 @@ tabDo = (predicate, process, done=null) ->
             done count if transit == 0
       done count if done and count == 0
 
+tabCallback = (tab, name, callback) ->
+  (response) ->
+    echo "done #{name}: #{tab.id} #{tab.url}"
+    callback() if callback
+
+
 # #####################################################################
 # Operations:
 #   - `support` operations are not available directly.
@@ -113,21 +119,20 @@ tabDo = (predicate, process, done=null) ->
 
 support =
 
-  # Close tab.
-  close:
-    ( tab, callback=null) ->
-      wsDo "chrome.tabs.remove", [ tab.id ],
-        (response) ->
-          echo "done remove: #{tab.id} #{tab.url}"
-          callback() if callback
-        
   # Focus tab.
   focus:
     ( tab, callback=null) ->
-      wsDo "chrome.tabs.update", [ tab.id, { selected: true } ],
-        (response) ->
-          echo "done focus: #{tab.id} #{tab.url}"
-          callback() if callback
+      wsDo "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
+        
+  # Reload tab.
+  reload:
+    ( tab, callback=null) ->
+      wsDo "chrome.tabs.reload", [ tab.id, null ], tabCallback tab, "reload", callback
+        
+  # Close tab.
+  close:
+    ( tab, callback=null) ->
+      wsDo "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
         
 operations =
 
@@ -150,14 +155,32 @@ operations =
           else
             callback() if callback
 
+  with:
+    (msg, callback=null) ->
+      return echoErr "invalid with: #{msg}" unless msg and msg.length == 2
+      [ what ] = msg.splice 0, 1
+      tabDo selector.fetch(what),
+        (tab, callback) ->
+          cmd = [ term for term in msg ]
+          if cmd.length == 1 and support[cmd[0]]
+            support[cmd[0]] tab, callback
+          else
+            echoErr "invalid with command: #{cmd}"
+        (count) ->
+          echo "with #{what}: #{count}"
+          callback() if callback
+
 # #####################################################################
 # Execute command line arguments.
 
 msg = conf._
 
+if msg and msg[0] and support[msg[0]] and not operations[msg[0]]
+  msg = "with current".split(/\s+/).concat msg
+
 if msg and msg.length == 0
-  # TODO: Ping.
-  true
+  echoErr "can't ping yet :-("
+  process.exit 1
 
 else if msg and msg[0] and operations[msg[0]]
   operations[msg[0]] msg.splice(1), -> process.exit 0
@@ -165,14 +188,4 @@ else if msg and msg[0] and operations[msg[0]]
 else
   echoErr "invalid command: #{msg}"
   process.exit 1
-
-# #####################################################################
-# Test.
-
-# tabDo selector.fetch("all"),
-#   (tab) ->
-#     echo tab.url
-#   (count) ->
-#     echo count
-#     process.exit 0
 
