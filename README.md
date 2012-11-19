@@ -4,7 +4,7 @@ chromix
 Chromix is a command-line utility for controlling Google chrome.  It can be
 used, amongst other things, to create, switch, focus, reload and remove tabs.
 
-Here's an example.  Say you're editing an
+Here's a use case.  Say you're editing an
 [asciidoc](http://www.methods.co.nz/asciidoc/userguide.html) or a
 [markdown](http://daringfireball.net/projects/markdown/) document.  The work
 flow is: edit, compile, and reload the chrome tab to see your changes.
@@ -29,7 +29,7 @@ The dependencies for chromix are the same as those for chromi -- see
 
 Chromix is compiled with `cake build` in the project's root folder.
 
-The resulting Javascript file (`chromix.js`) can be made executable and
+The resulting Javascript file (`script/chromix.js`) can be made executable and
 installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
@@ -64,7 +64,7 @@ This first searches for a tab for which `https://github.com/` is a prefix of
 the tab's URL.  If such a tab is found, it is focussed.  Otherwise, a new tab
 is created for the URL.
 
-Additionally, if the URL is of the form 'file:///....', then the tab is
+Additionally, if the URL is of the form 'file://.*', then the tab is
 reloaded.
 
 #### With
@@ -77,7 +77,7 @@ This closes all tabs except the focused one.
 
 The first argument to `with` specifies what the command applies to (`other`,
 above,  means "all non-focused tab"), and the second and subsequent arguments are a tab
-command and *its* arguments (`close`, above).
+command and *its* arguments (just `close`, above).
 
 With `with`, tabs can be specified in a number of ways: `current`, `other`,
 `http` or `file`.  Any other argument to `with` is taken to be a pattern which
@@ -88,7 +88,15 @@ Here's an example:
 ```
 node chromix.js with "file:///.*/slidy/.*.html" reload
 ```
-Reload all tabs containing HTML files under directories named `slidy`.
+This reloads all tabs containing HTML files under directories named `slidy`.
+
+#### Bookmarks
+
+Example:
+```
+node chromix.js bookmarks
+```
+This outputs (to `stdout`) a lit of all chrome bookmarks, one per line.
 
 ### Tab Commands
 
