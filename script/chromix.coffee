@@ -221,8 +221,8 @@ generalOperations =
       tabDo selector.fetch(url),
         # `process`
         (win, tab, callback) ->
-          tabOperations.focus null, tab, ->
-            if selector.fetch("file") win, tab then tabOperations.reload null, tab, callback else callback()
+          tabOperations.focus [], tab, ->
+            if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
         # `done`
         (count) ->
           if count == 0
@@ -286,11 +286,11 @@ if msg and msg[0] and tabOperations[msg[0]] and not generalOperations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
 # Call the command and exit.
-if msg and msg[0] and generalOperations[msg[0]]
-  generalOperations[msg[0]] msg.splice(1), ( -> process.exit 0 )
-  # Should be unreachable, but let's exit here, just in case.
-  process.exit 1
+cmd = msg.splice(0,1)[0]
+if cmd and generalOperations[cmd]
+  generalOperations[cmd] msg, ( -> process.exit 0 )
 
-echoErr "invalid command: #{msg}"
-process.exit 1
+else
+  echoErr "invalid command: #{cmd} #{msg}"
+  process.exit 1
 
