@@ -260,22 +260,32 @@ generalOperations =
         callback() if callback
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
-  bookmarks: (msg, callback=null, bookmark=null) ->
+  bookmarks: (msg, callback=null, output=null, bookmark=null) ->
     return echoErr "invalid bookmarks: #{msg}" unless msg.length == 0
     if not bookmark
-      # First time through (this is not a recursive call).
+      # First time through (this *is not* a recursive call).
       ws.do "chrome.bookmarks.getTree", [],
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
-            @bookmarks msg, callback, bmark if bmark
+            @bookmarks msg, callback, output, bmark if bmark
           callback() if callback
     else
       # All other times through (this *is* a recursive call).
       if bookmark.url and bookmark.title
-        echo "#{bookmark.url} #{bookmark.title}"
+        if output then output bookmark else echo "#{bookmark.url} #{bookmark.title}"
       if bookmark.children
         bookmark.children.forEach (bmark) =>
-          @bookmarks msg, callback, bmark if bmark
+          @bookmarks msg, callback, output, bmark if bmark
+
+  # A custom bookmark listing, just for smblott: "booky" support.
+  booky: (msg, callback=null) ->
+    regexp = new RegExp "(\\([A-Z0-9]+\\))", "g"
+    @bookmarks msg, callback,
+      # Output routine.
+      (bmark) ->
+        ( bmark.title.match(regexp) || [] ).forEach (bm) ->
+          bm = bm.slice(1,-1).toLowerCase()
+          echo "#{bm} #{bmark.url}"
 
 # #####################################################################
 # Execute command line arguments.
