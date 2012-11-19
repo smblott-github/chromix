@@ -132,7 +132,10 @@ node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 Visit `http://www.bbc.co.uk/news/` in the current tab.
 
-#### Note
+Notes
+-----
+
+### Implicit `with` in Tab Commands
 
 If a tab command is used without a preceding `with` clause, then the current tab is assumed.
 
