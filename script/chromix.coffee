@@ -235,17 +235,16 @@ operations =
   # Apply one of `tabOperations` to all matching tabs.
   with:
     (msg, callback=null) ->
-      return echoErr "invalid with: #{msg}" unless msg and msg.length == 2
+      return echoErr "invalid with: #{msg}" unless msg and 2 <= msg.length
       [ what ] = msg.splice 0, 1
       tabDo selector.fetch(what),
         (win, tab, callback) ->
-          cmd = msg.splice(0,1)[0]
+          cmd = msg[0]
           if cmd and tabOperations[cmd]
-            tabOperations[cmd] msg[0..], tab, callback
+            tabOperations[cmd] msg[1..], tab, callback
           else
             echoErr "invalid with command: #{cmd}", true
         (count) ->
-          echo "with #{what}: #{count}"
           callback() if callback
 
   ping: (msg, callback=null) ->
