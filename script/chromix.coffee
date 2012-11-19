@@ -87,7 +87,7 @@ class WS
         # Process any queued requests.  Subsequent requests will not be queued.
         @ready = true
         for callback in @queue
-          process.nextTick -> callback()
+          callback()
 
     # Handle an incoming message.
     @ws.on "message",
@@ -130,7 +130,7 @@ class WS
     if @callbacks[id]
       callback = @callbacks[id]
       delete @callbacks[id]
-      process.nextTick -> callback argument
+      callback argument
 
   # `func`: a string of the form "chrome.windows.getAll"
   # `args`: a list of arguments for `func`
@@ -140,7 +140,7 @@ class WS
     msg = [ func, json args ].map(encodeURIComponent).join " "
     @send msg, (response) ->
       if callback
-        process.nextTick -> callback.apply null, JSON.parse decodeURIComponent response
+        callback.apply null, JSON.parse decodeURIComponent response
 
   # TODO: Use IP address/port for ID?
   #
@@ -173,22 +173,22 @@ tabDo = (predicate, eachTab, done=null) ->
             eachTab win, tab, ->
               intransit -= 1
               done count if intransit == 0
-      process.nextTick -> done count if done and count == 0
+      done count if done and count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
   (response) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
-    process.nextTick -> callback() if callback
+    callback() if callback
 
 # If there is an existing window, call `callback`, otherwise create one and call `callback`.
 requireWindow = (callback) ->
   tabDo selector.fetch("window"),
     # eachTab.
-    (win, tab, callback) -> process.nextTick -> callback()
+    (win, tab, callback) -> callback()
     # Done.
     (count) ->
-      if count then process.nextTick -> callback() else ws.do "chrome.windows.create", [{}], (response) -> process.nextTick -> callback()
+      if count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
 
 # #####################################################################
 # Operations:
@@ -239,16 +239,16 @@ generalOperations =
           # `eachTab`
           (win, tab, callback) ->
             tabOperations.focus [], tab, ->
-              if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else process.nextTick -> callback()
+              if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
           # `done`
           (count) ->
             if count == 0
               ws.do "chrome.tabs.create", [{ url: url }],
                 (response) ->
                   echo "done create: #{url}"
-                  process.nextTick -> callback()
+                  callback()
             else
-              process.nextTick -> callback()
+              callback()
 
   # Apply one of `tabOperations` to all matching tabs.
   with:
@@ -265,14 +265,14 @@ generalOperations =
             echoErr "invalid with command: #{cmd}", true
         # `done`
         (count) ->
-          process.nextTick -> callback()
+          callback()
 
   ping: (msg, callback=null) ->
     return echoErr "invalid ping: #{msg}" unless msg.length == 0
     ws.do "", [],
       (response) ->
         process.exit 1 unless response
-        process.nextTick -> callback()
+        callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
   bookmarks: (msg, callback, output=null, bookmark=null) ->
@@ -283,7 +283,7 @@ generalOperations =
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
             @bookmarks msg, callback, output, bmark if bmark
-          process.nextTick -> callback()
+          callback()
     else
       # All other times through (this *is* a recursive call).
       if bookmark.url and bookmark.title
