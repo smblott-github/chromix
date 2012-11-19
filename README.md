@@ -11,11 +11,84 @@ flow is: edit, compile, and reload the chrome tab to see your changes.
 
 Chromix can help automate this, particularly the last step.  Change the build step to:
 ```
-markdown somefile.md > somefile.html && chromix load file://$PWD/somefile.html
+markdown somefile.md > somefile.html && node chromix.js load file://$PWD/somefile.html
 ```
 Now, chrome reloads your work every time it changes.  And with suitable key
 bindings in your text editor, the build-view process can involve just a couple
 of key strokes.
+
+Installation
+------------
+
+Chromix depends on [Chromi](https://github.com/smblott-github/chromi).  So the
+first step is to [install
+chromi](https://github.com/smblott-github/chromi#installation).
+
+The dependencies for chromix are the same as those for chromi -- see
+[here](https://github.com/smblott-github/chromi#dependencies).
+
+Chromix is compiled with `cake build` in the project's root folder.
+
+The resulting Javascript file (`chromix.js`) can be made executable and
+installed in some suitable directory on your `PATH`.
+
+A chromix invocation looks something like:
+```
+node chromix.js <CHROMIX-COMMAND> [ARGUMENTS...]
+```
+
+Chromix Commands
+----------------
+
+There are two types of chromix commands: general commands and tab commands.
+
+### General Commands
+
+#### Ping
+
+Example:
+```
+node chromix.js ping
+```
+This produces no output, but yields an exit code of `0` if chromix was able to
+ping chrome, and non-zero otherwise.  It is useful in scripts for checking
+whether chrome is running.
+
+#### Load
+
+Example:
+```
+node chromix.js load https://github.com/
+```
+This first searches for a tab for which `https://github.com/` is a prefix of
+the tab's URL.  If such a tab is found, it is focussed.  Otherwise, a new tab
+is created for the URL.
+
+Additionally, if the URL is of the form 'file:///....', then the tab is
+reloaded.
+
+#### With
+
+Example:
+```
+node chromix.js with other close
+```
+This closes all tabs except the focused one.
+
+The first argument to `with` specifies what the command applies to (`other`,
+above,  means "all non-focused tab"), and the second and subsequent arguments are a tab
+command and *its* arguments (`close`, above).
+
+With `with`, tabs can be specified in a number of ways: `current`, `other`,
+`http` or `file`.  Any other argument to `with` is taken to be a pattern which
+is used to match tabs.  Patterns must match from the start of the URL and may
+contain Javascript RegExp operators.
+
+Here's an example:
+```
+node chromix.js with "file:///.*/slidy/.*.html" reload
+```
+Reload all tabs contain files within directories named `slidy`.
 
 
 
