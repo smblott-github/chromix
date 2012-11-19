@@ -87,7 +87,7 @@ class WS
         # Process any queued requests.  Subsequent requests will not be queued.
         @ready = true
         for callback in @queue
-          callback()
+          process.nextTick -> callback()
 
     # Handle an incoming message.
     @ws.on "message",
@@ -130,7 +130,7 @@ class WS
     if @callbacks[id]
       callback = @callbacks[id]
       delete @callbacks[id]
-      callback argument
+      process.nextTick -> callback argument
 
   # `func`: a string of the form "chrome.windows.getAll"
   # `args`: a list of arguments for `func`
@@ -140,7 +140,7 @@ class WS
     msg = [ func, json args ].map(encodeURIComponent).join " "
     @send msg, (response) ->
       if callback
-        callback.apply null, JSON.parse decodeURIComponent response
+        process.nextTick -> callback.apply null, JSON.parse decodeURIComponent response
 
   # TODO: Use IP address/port for ID?
   #
@@ -151,13 +151,13 @@ ws = new WS()
 # #####################################################################
 # Tab utilities.
 
-# Traverse tabs, applying `process` to all tabs which match `predicate`.  When done, call `done` with a count
+# Traverse tabs, applying `eachTab` to all tabs which match `predicate`.  When done, call `done` with a count
 # of the number of matching tabs.
 #
-# `process` must accept three arguments: a window, a tab and a callback (which it must invoke after completing
+# `eachTab` must accept three arguments: a window, a tab and a callback (which it must invoke after completing
 # its work).
 #
-tabDo = (predicate, process, done=null) ->
+tabDo = (predicate, eachTab, done=null) ->
   ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
@@ -166,24 +166,29 @@ tabDo = (predicate, process, done=null) ->
         for tab in ( win.tabs.filter (t) -> predicate win, t )
           count += 1
           intransit += 1
-          process win, tab, ->
-            intransit -= 1
-            done count if intransit == 0
-      done count if done and count == 0
+          # Defer calling `eachTab` until the next tick of the event loop.  If `eachTab` is synchronous it
+          # will complete immediately, and `intransit` is *guaranteed* to be 0.  So `done` gets called on
+          # every iteration.  Deferring `eachTab` prevents this.
+          process.nextTick ->
+            eachTab win, tab, ->
+              intransit -= 1
+              done count if intransit == 0
+      process.nextTick -> done count if done and count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
   (response) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
-    callback() if callback
+    process.nextTick -> callback() if callback
 
 # If there is an existing window, call `callback`, otherwise create one and call `callback`.
 requireWindow = (callback) ->
   tabDo selector.fetch("window"),
-    # Process.
-    (win, tab, callback) -> callback() if callback
+    # eachTab.
+    (win, tab, callback) -> process.nextTick -> callback()
     # Done.
-    (count) -> if count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
+    (count) ->
+      if count then process.nextTick -> callback() else ws.do "chrome.windows.create", [{}], (response) -> process.nextTick -> callback()
 
 # #####################################################################
 # Operations:
@@ -226,32 +231,32 @@ generalOperations =
   # When done, call `callback` (if provided).
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
   load:
-    (msg, callback=null) ->
+    (msg, callback) ->
       return echoErr "invalid load: #{msg}" unless msg and msg.length == 1
       url = msg[0]
       requireWindow ->
         tabDo selector.fetch(url),
-          # `process`
+          # `eachTab`
           (win, tab, callback) ->
             tabOperations.focus [], tab, ->
-              if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+              if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else process.nextTick -> callback()
           # `done`
           (count) ->
             if count == 0
               ws.do "chrome.tabs.create", [{ url: url }],
                 (response) ->
                   echo "done create: #{url}"
-                  callback() if callback
+                  process.nextTick -> callback()
             else
-              callback() if callback
+              process.nextTick -> callback()
 
   # Apply one of `tabOperations` to all matching tabs.
   with:
-    (msg, callback=null) ->
+    (msg, callback) ->
       return echoErr "invalid with: #{msg}" unless msg and 2 <= msg.length
       [ what ] = msg.splice 0, 1
       tabDo selector.fetch(what),
-        # `process`
+        # `eachTab`
         (win, tab, callback) ->
           cmd = msg[0]
           if cmd and tabOperations[cmd]
@@ -260,17 +265,17 @@ generalOperations =
             echoErr "invalid with command: #{cmd}", true
         # `done`
         (count) ->
-          callback() if callback
+          process.nextTick -> callback()
 
   ping: (msg, callback=null) ->
     return echoErr "invalid ping: #{msg}" unless msg.length == 0
     ws.do "", [],
       (response) ->
         process.exit 1 unless response
-        callback() if callback
+        process.nextTick -> callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
-  bookmarks: (msg, callback=null, output=null, bookmark=null) ->
+  bookmarks: (msg, callback, output=null, bookmark=null) ->
     return echoErr "invalid bookmarks: #{msg}" unless msg.length == 0
     if not bookmark
       # First time through (this *is not* a recursive call).
@@ -278,7 +283,7 @@ generalOperations =
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
             @bookmarks msg, callback, output, bmark if bmark
-          callback() if callback
+          process.nextTick -> callback()
     else
       # All other times through (this *is* a recursive call).
       if bookmark.url and bookmark.title
