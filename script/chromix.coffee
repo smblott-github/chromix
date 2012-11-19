@@ -126,8 +126,9 @@ class WS
   # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
     if @callbacks[id]
-      @callbacks[id] argument
+      callback = @callbacks[id]
       delete @callbacks[id]
+      callback argument
 
   # `func`: a string of the form "chrome.windows.getAll"
   # `args`: a list of arguments for `func`
