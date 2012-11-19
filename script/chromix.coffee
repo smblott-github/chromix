@@ -51,6 +51,7 @@ class Selector
         win.type == "normal" and regexp.test tab.url
 
   constructor: ->
+    @selector.window   = (win,tab) -> win.type == "normal"
     @selector.all      = (win,tab) -> win.type == "normal" and true
     @selector.active   = (win,tab) -> win.type == "normal" and tab.active
     @selector.current  = (win,tab) -> win.type == "normal" and tab.active
@@ -176,6 +177,14 @@ tabCallback = (tab, name, callback) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
     callback() if callback
 
+# If there is an existing window, call `callback`, otherwise create one and call `callback`.
+requireWindow = (callback) ->
+  tabDo selector.fetch("window"),
+    # Process.
+    (win, tab, callback) -> callback() if callback
+    # Done.
+    (count) -> if count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
+
 # #####################################################################
 # Operations:
 #   - `tabOperations` these require a tab are not callable directly.
@@ -220,20 +229,21 @@ generalOperations =
     (msg, callback=null) ->
       return echoErr "invalid load: #{msg}" unless msg and msg.length == 1
       url = msg[0]
-      tabDo selector.fetch(url),
-        # `process`
-        (win, tab, callback) ->
-          tabOperations.focus [], tab, ->
-            if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
-        # `done`
-        (count) ->
-          if count == 0
-            ws.do "chrome.tabs.create", [{ url: url }],
-              (response) ->
-                echo "done create: #{url}"
-                callback() if callback
-          else
-            callback() if callback
+      requireWindow ->
+        tabDo selector.fetch(url),
+          # `process`
+          (win, tab, callback) ->
+            tabOperations.focus [], tab, ->
+              if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+          # `done`
+          (count) ->
+            if count == 0
+              ws.do "chrome.tabs.create", [{ url: url }],
+                (response) ->
+                  echo "done create: #{url}"
+                  callback() if callback
+            else
+              callback() if callback
 
   # Apply one of `tabOperations` to all matching tabs.
   with:
@@ -291,6 +301,9 @@ generalOperations =
 # Execute command line arguments.
 
 msg = conf._
+
+# Might as well "ping" without any arguments.
+msg = [ "ping" ] if msg.length == 0
 
 # If the command is in `tabOperations`, then add "with current" to the start of it.  This gives a sensible,
 # default meaning for these commands.

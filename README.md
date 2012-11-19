@@ -79,7 +79,7 @@ The first argument to `with` specifies what the command applies to (`other`,
 above,  means "all non-focused tab"), and the second and subsequent arguments are a tab
 command and *its* arguments (just `close`, above).
 
-With `with`, tabs can be specified in a number of ways: `current`, `other`,
+With `with`, tabs can be specified in a number of ways: `all`, `current`, `other`,
 `http` or `file`.  Any other argument to `with` is taken to be a pattern which
 is used to match tabs.  Patterns must match from the start of the URL and may
 contain Javascript RegExp operators.
