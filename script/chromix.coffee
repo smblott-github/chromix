@@ -152,20 +152,20 @@ ws = new WS()
 # of the number of matching tabs.
 #
 # `process` must accept three arguments: a window, a tab and a callback (which it must invoke after completing
-# its work.
+# its work).
 #
 tabDo = (predicate, process, done=null) ->
   ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
-      transit = 0
+      intransit = 0
       for win in wins
         for tab in ( win.tabs.filter (t) -> predicate win, t )
           count += 1
-          transit += 1
+          intransit += 1
           process win, tab, ->
-            transit -= 1
-            done count if transit == 0
+            intransit -= 1
+            done count if intransit == 0
       done count if done and count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
@@ -177,23 +177,26 @@ tabCallback = (tab, name, callback) ->
 # #####################################################################
 # Operations:
 #   - `tabOperations` these require a tab are not callable directly.
-#   - `operations` the exported operations.
+#   - `generalOperations` the exported operations.
 
 tabOperations =
 
   # Focus tab.
   focus:
     ( msg, tab, callback=null) ->
+      return echoErr "invalid focus: #{msg}" unless msg.length == 0
       ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
         
   # Reload tab.
   reload:
     ( msg, tab, callback=null) ->
+      return echoErr "invalid reload: #{msg}" unless msg.length == 0
       ws.do "chrome.tabs.reload", [ tab.id, null ], tabCallback tab, "reload", callback
         
   # Close tab.
   close:
     ( msg, tab, callback=null) ->
+      return echoErr "invalid close: #{msg}" unless msg.length == 0
       ws.do "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
 
   # Goto: load the indicated URL.
@@ -201,13 +204,11 @@ tabOperations =
   # TODO: add "with new" selector?
   goto:
     ( msg, tab, callback=null) ->
-      if msg.length == 1 and msg[0]
-        url = msg[0]
-        ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: url } ], tabCallback tab, "goto", callback
-      else
-        echoErr "invalid goto command: #{msg}", true
+      return echoErr "invalid goto: #{msg}" unless msg.length == 1 and msg[0]
+      url = msg[0]
+      ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: url } ], tabCallback tab, "goto", callback
 
-operations =
+generalOperations =
 
   # Locate all tabs matching `url` and focus it.  Normally, there should be just one match or none.
   # If there is no match, then create a new tab and load `url`.
@@ -238,12 +239,14 @@ operations =
       return echoErr "invalid with: #{msg}" unless msg and 2 <= msg.length
       [ what ] = msg.splice 0, 1
       tabDo selector.fetch(what),
+        # `process`
         (win, tab, callback) ->
           cmd = msg[0]
           if cmd and tabOperations[cmd]
             tabOperations[cmd] msg[1..], tab, callback
           else
             echoErr "invalid with command: #{cmd}", true
+        # `done`
         (count) ->
           callback() if callback
 
@@ -256,15 +259,16 @@ operations =
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
   bookmarks: (msg, callback=null, bookmark=null) ->
+    return echoErr "invalid bookmarks: #{msg}" unless msg.length == 0
     if not bookmark
-      # First time through.
+      # First time through (this is not a recursive call).
       ws.do "chrome.bookmarks.getTree", [],
         (bookmarks) =>
           bookmarks.forEach (bmark) =>
             @bookmarks msg, callback, bmark if bmark
           callback() if callback
     else
-      # All other (recursive) times through.
+      # All other times through (this *is* a recursive call).
       if bookmark.url and bookmark.title
         echo "#{bookmark.url} #{bookmark.title}"
       if bookmark.children
@@ -276,13 +280,18 @@ operations =
 
 msg = conf._
 
-if msg and msg[0] and tabOperations[msg[0]] and not operations[msg[0]]
+# If the command is in `tabOperations`, then add "with current" to the start of it.  This gives a sensible,
+# default meaning for these commands.
+if msg and msg[0] and tabOperations[msg[0]] and not generalOperations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
-if msg and msg[0] and operations[msg[0]]
-  operations[msg[0]] msg.splice(1), ( -> process.exit 0 )
-
-else
-  echoErr "invalid command: #{msg}"
+# Call the command and exit.
+# default meaning for these commands.
+if msg and msg[0] and generalOperations[msg[0]]
+  generalOperations[msg[0]] msg.splice(1), ( -> process.exit 0 )
+  # Should be unreachable, but let's exit here, just in case.
   process.exit 1
+
+echoErr "invalid command: #{msg}"
+process.exit 1
 
