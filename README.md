@@ -34,13 +34,13 @@ installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
 ```
-node chromix.js <CHROMIX-COMMAND> [ARGUMENTS...]
+node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
 ```
 
 Chromix Commands
 ----------------
 
-There are two types of chromix commands: general commands and tab commands.
+There are two types of chromix commands: *general* commands and *tab* commands.
 
 ### General Commands
 
@@ -51,7 +51,7 @@ Example:
 node chromix.js ping
 ```
 This produces no output, but yields an exit code of `0` if chromix was able to
-ping chrome, and non-zero otherwise.  It is useful in scripts for checking
+ping chrome, and non-zero otherwise.  It can be useful in scripts for checking
 whether chrome is running.
 
 #### Load
@@ -88,7 +88,54 @@ Here's an example:
 ```
 node chromix.js with "file:///.*/slidy/.*.html" reload
 ```
-Reload all tabs contain files within directories named `slidy`.
+Reload all tabs containing HTML files under directories named `slidy`.
+
+### Tab Commands
+
+#### Focus
+
+Example:
+```
+node chromix.js with http://www.bbc.co.uk/news/ focus
+```
+Focus the indicated tab.
+
+#### Reload
+
+Example:
+```
+node chromix.js with http://www.bbc.co.uk/news/ reload
+```
+Reload the indicated tab.
+
+#### Close
+
+Example:
+```
+node chromix.js with http://www.bbc.co.uk/news/ close
+```
+Close the indicated tab.
+
+#### Goto
+
+Example:
+```
+node chromix.js with current goto http://www.bbc.co.uk/news/
+```
+Visit `http://www.bbc.co.uk/news/` in the current tab.
+
+#### Note
+
+If a tab command is used without a preceding `with` clause, then the current tab is assumed.
+
+So, the following:
+```
+node chromix.js goto http://www.bbc.co.uk/news/
+```
+is shorthand for
+```
+node chromix.js with current goto http://www.bbc.co.uk/news/
+```
 
 
 
