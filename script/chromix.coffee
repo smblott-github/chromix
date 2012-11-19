@@ -133,7 +133,7 @@ class WS
   # `func`: a string of the form "chrome.windows.getAll"
   # `args`: a list of arguments for `func`
   # `callback`: will be called with the response from chrome; the response is `undefined` if the invocation
-  #             failed in any way; see the chromi server's output to trace what may have gone wrong
+  #             failed in any way; see the chromi server's output to trace what may have gone wrong.
   do: (func, args, callback) ->
     msg = [ func, json args ].map(encodeURIComponent).join " "
     @send msg, (response) ->
