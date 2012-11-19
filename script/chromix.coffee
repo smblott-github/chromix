@@ -242,8 +242,7 @@ if msg and msg[0] and support[msg[0]] and not operations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
 if msg and msg[0] and operations[msg[0]]
-  operations[msg[0]] msg.splice(1), ( -> process.exit 0 )
-
+  operations[msg[0]] msg.splice(1), -> process.exit 0
 else
   echoErr "invalid command: #{msg}"
   process.exit 1
