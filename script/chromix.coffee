@@ -25,8 +25,6 @@ echo = (msg, where = process.stdout) ->
       true
     when "list"
       msg = msg.join " "
-    when "object"
-      msg = json msg
     else
       msg = json msg
   where.write "#{msg}\n"
@@ -37,7 +35,10 @@ echoErr = (msg, die = false) ->
 
 # #####################################################################
 # Tab selectors.
-
+#
+# The main method here is `fetch` which takes a `pattern` and yields a predicate function for testing
+# window/tab pairs against that pattern.  `Selector` also serves as a cache for regular expressions.
+#
 class Selector
   selector: {}
 
@@ -62,32 +63,40 @@ selector = new Selector()
 
 # #####################################################################
 # Web socket utilities.
+#
+# A single instance of the `WS` class is the only interface to the websocket.  The websocket connection is
+# cached.
+#
+# For external use, the main method here is `do`.
 
 class WS
   constructor: ->
     @queue = []
     @ready = false
     @callbacks = {}
-    @ws = new WebSocket("ws://#{conf.server}:#{conf.port}/")
+    @ws = new WebSocket "ws://#{conf.server}:#{conf.port}/"
 
     @ws.on "error",
       (error) ->
-        echoErr JSON.stringify(error), true
+        echoErr json(error), true
 
     @ws.on "open",
       =>
+        # Process any queued requests.  Subsequent requests will not be queued.
         @ready = true
         for callback in @queue
           callback()
 
+    # Handle an incoming message.
     @ws.on "message",
       (msg) =>
         msg = msg.split(/\s+/)
         [ signal, msgId, type, response ] = msg
+        # Is the message for us?
         return unless signal == chromiCap and @callbacks[msgId]
         switch type
           when "info"
-            # echoErr msg
+            # Quietly ignore these.
             true
           when "done"
             @callback msgId, response
@@ -96,6 +105,9 @@ class WS
           else
             echoErr msg
 
+  # Send a request to chrome.
+  # If the websocket is already connected, then the request is sent immediately.  Otherwise, it is cached
+  # until the websocket's "open" event fires.
   send: (msg, callback) ->
     id = @createId()
     f = =>
@@ -104,16 +116,25 @@ class WS
     if @ready then f() else @queue.push f
 
   register: (id, callback) ->
+    # Add `callback` to a dict of callbacks hashed on their request `id`.
+    #
+    # Timeouts are never cancelled.  If the request has successfully completed by the time the timeout fires,
+    # the callback will already have been removed from the list of callbacks (so it's safe).
     setTimeout ( => @callback id ), conf.timeout
     @callbacks[id] = callback
 
+  # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
     if @callbacks[id]
       @callbacks[id] argument
       delete @callbacks[id]
 
+  # `func`: a string of the form "chrome.windows.getAll"
+  # `args`: a list of arguments for `func`
+  # `callback`: will be called with the response from chrome; the response is `undefined` if the invocation
+  #             failed in any way; see the chromi server's output to trace what may have gone wrong
   do: (func, args, callback) ->
-    msg = [ func, JSON.stringify args ].map(encodeURIComponent).join " "
+    msg = [ func, json args ].map(encodeURIComponent).join " "
     @send msg, (response) ->
       if callback
         callback.apply null, JSON.parse decodeURIComponent response
@@ -127,6 +148,12 @@ ws = new WS()
 # #####################################################################
 # Tab utilities.
 
+# Traverse tabs, applying `process` to all tabs which match `predicate`.  When done, call `done` with a count
+# of the number of matching tabs.
+#
+# `process` must accept three arguments: a window, a tab and a callback (which it must invoke after completing
+# its work.
+#
 tabDo = (predicate, process, done=null) ->
   ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
@@ -141,6 +168,7 @@ tabDo = (predicate, process, done=null) ->
             done count if transit == 0
       done count if done and count == 0
 
+# A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
   (response) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
@@ -148,44 +176,53 @@ tabCallback = (tab, name, callback) ->
 
 # #####################################################################
 # Operations:
-#   - `support` operations require a tab are not callable directly.
+#   - `tabOperations` these require a tab are not callable directly.
 #   - `operations` the exported operations.
 
-support =
+tabOperations =
 
   # Focus tab.
   focus:
-    ( tab, callback=null) ->
+    ( msg, tab, callback=null) ->
       ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
         
   # Reload tab.
   reload:
-    ( tab, callback=null) ->
+    ( msg, tab, callback=null) ->
       ws.do "chrome.tabs.reload", [ tab.id, null ], tabCallback tab, "reload", callback
         
   # Close tab.
   close:
-    ( tab, callback=null) ->
+    ( msg, tab, callback=null) ->
       ws.do "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
 
-  # Blank tab.
-  blank:
-    ( tab, callback=null) ->
-      ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: "http://localhost/blank.html" } ], tabCallback tab, "blank", callback
-        
+  # Goto: load the indicated URL.
+  # Typically used with "with current", either explicitly or implicitly.
+  # TODO: add "with new" selector?
+  goto:
+    ( msg, tab, callback=null) ->
+      if msg.length == 1 and msg[0]
+        url = msg[0]
+        ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: url } ], tabCallback tab, "goto", callback
+      else
+        echoErr "invalid goto command: #{msg}", true
+
 operations =
 
-  # Locate first tab matching `url` and focus it.  If there is no
-  # match, then create a new tab and load `url`.
+  # Locate all tabs matching `url` and focus it.  Normally, there should be just one match or none.
+  # If there is no match, then create a new tab and load `url`.
   # When done, call `callback` (if provided).
+  # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
   load:
     (msg, callback=null) ->
       return echoErr "invalid load: #{msg}" unless msg and msg.length == 1
       url = msg[0]
       tabDo selector.fetch(url),
+        # `process`
         (win, tab, callback) ->
-          support.focus tab, ->
-            if selector.fetch("file") win, tab then support.reload tab, callback else callback()
+          tabOperations.focus null, tab, ->
+            if selector.fetch("file") win, tab then tabOperations.reload null, tab, callback else callback()
+        # `done`
         (count) ->
           if count == 0
             ws.do "chrome.tabs.create", [{ url: url }],
@@ -195,17 +232,18 @@ operations =
           else
             callback() if callback
 
+  # Apply one of `tabOperations` to all matching tabs.
   with:
     (msg, callback=null) ->
       return echoErr "invalid with: #{msg}" unless msg and msg.length == 2
       [ what ] = msg.splice 0, 1
       tabDo selector.fetch(what),
         (win, tab, callback) ->
-          cmd = [ term for term in msg ]
-          if cmd.length == 1 and support[cmd[0]]
-            support[cmd[0]] tab, callback
+          cmd = msg.splice(0,1)[0]
+          if cmd and tabOperations[cmd]
+            tabOperations[cmd] msg[0..], tab, callback
           else
-            echoErr "invalid with command: #{cmd}"
+            echoErr "invalid with command: #{cmd}", true
         (count) ->
           echo "with #{what}: #{count}"
           callback() if callback
@@ -217,6 +255,7 @@ operations =
         process.exit 1 unless response
         callback() if callback
 
+  # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
   bookmarks: (msg, callback=null, bookmark=null) ->
     if not bookmark
       # First time through.
@@ -238,7 +277,7 @@ operations =
 
 msg = conf._
 
-if msg and msg[0] and support[msg[0]] and not operations[msg[0]]
+if msg and msg[0] and tabOperations[msg[0]] and not operations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
 if msg and msg[0] and operations[msg[0]]
