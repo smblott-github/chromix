@@ -286,7 +286,6 @@ if msg and msg[0] and tabOperations[msg[0]] and not generalOperations[msg[0]]
   msg = "with current".split(/\s+/).concat msg
 
 # Call the command and exit.
-# default meaning for these commands.
 if msg and msg[0] and generalOperations[msg[0]]
   generalOperations[msg[0]] msg.splice(1), ( -> process.exit 0 )
   # Should be unreachable, but let's exit here, just in case.
