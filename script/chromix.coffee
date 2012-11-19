@@ -157,7 +157,7 @@ ws = new WS()
 # `eachTab` must accept three arguments: a window, a tab and a callback (which it must invoke after completing
 # its work).
 #
-tabDo = (predicate, eachTab, done=null) ->
+tabDo = (predicate, eachTab, done) ->
   ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
@@ -166,14 +166,14 @@ tabDo = (predicate, eachTab, done=null) ->
         for tab in ( win.tabs.filter (t) -> predicate win, t )
           count += 1
           intransit += 1
-          # Defer calling `eachTab` until the next tick of the event loop.  If `eachTab` is synchronous it
-          # will complete immediately, and `intransit` is *guaranteed* to be 0.  So `done` gets called on
-          # every iteration.  Deferring `eachTab` prevents this.
-          process.nextTick ->
-            eachTab win, tab, ->
+          eachTab win, tab, ->
+            # Defer this callback until the next tick of the event loop.  If `eachTab` were synchronous, then
+            # it would complete immediately ... and `intransit` would be *guaranteed* to be 0.  So `done` gets
+            # called on each iteration.  Deferring here prevents this.
+            process.nextTick ->
               intransit -= 1
               done count if intransit == 0
-      done count if done and count == 0
+      done count if count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
