@@ -132,10 +132,17 @@ So, the following:
 ```
 node chromix.js goto http://www.bbc.co.uk/news/
 ```
-is shorthand for
+is shorthand for:
 ```
 node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 
+Closing Comments
+----------------
 
+Chromix is a work in progress and may be subject to either gentle evolution or
+abrupt change.
+
+Please let me (Steve Blott) know if you have any ideas as to how chromix might
+be improved.
 
