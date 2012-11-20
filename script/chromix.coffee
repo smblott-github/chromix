@@ -57,9 +57,8 @@ class Selector
     @selector.current  = (win,tab) -> win.type == "normal" and tab.active
     @selector.other    = (win,tab) -> win.type == "normal" and not tab.active
     @selector.inactive = (win,tab) -> win.type == "normal" and not tab.active
-    @selector.normal   = (win,tab) => "http file ftp".split(" ").reduce ( (p,c) => p || @fetch(c) win, tab), false
-    # @selector.normal   = (win,tab) => @fetch("http")(win,tab) or @fetch("file")(win,tab)  or @fetch("ftp")(win,tab)
     @selector.chrome   = (win,tab) => not @fetch("normal")(win,tab)
+    @selector.normal   = (win,tab) => "http file ftp".split(" ").reduce ((p,c) => p || @fetch(c) win, tab), false
     @selector.http     = @fetch "https?://"
     @selector.file     = @fetch "file://"
     @selector.ftp      = @fetch "ftp://"
