@@ -260,10 +260,13 @@ generalOperations =
 
   # Apply one of `tabOperations` to all matching tabs.
   with:
-    (msg, callback) ->
-      return echoErr "invalid with: #{msg}" unless msg and 2 <= msg.length
-      [ what ] = msg.splice 0, 1
-      tabDo selector.fetch(what),
+    (msg, callback, predicate=null) ->
+      if not predicate
+        return echoErr "invalid with: #{msg}" unless msg and 2 <= msg.length
+        [ what ] = msg.splice 0, 1
+        predicate = selector.fetch(what)
+      #
+      tabDo predicate,
         # `eachTab`
         (win, tab, callback) ->
           cmd = msg[0]
@@ -274,6 +277,16 @@ generalOperations =
         # `done`
         (count) ->
           callback()
+
+  # Apply one of `tabOperations` to all *not* matching tabs.
+  without:
+    (msg, callback) ->
+      return echoErr "invalid without: #{msg}" unless msg and 2 <= msg.length
+      [ what ] = msg.splice 0, 1
+      original = selector.fetch(what)
+      predicate = (win,tab) -> not original(win,tab)
+      #
+      @with msg, callback, predicate
 
   ping: (msg, callback=null) ->
     return echoErr "invalid ping: #{msg}" unless msg.length == 0

@@ -97,6 +97,16 @@ node chromix.js with "file:///.*/slidy/.*.html" reload
 ```
 This reloads all tabs containing HTML files under directories named `slidy`.
 
+#### Without
+
+Example:
+```
+node chromix.js without https://www.facebook.com/ close
+```
+This closes all windows *except* those within the Facebook domain.
+
+`without` is the same as `with`, except that the test is inverted.
+
 #### Window
 
 Example:
