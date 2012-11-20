@@ -186,7 +186,7 @@ node chromix.js with current goto http://www.bbc.co.uk/news/
 ### Wrapper
 
 The helper script `extra/chromix` may prove helpful.  To use it, set the
-environment variable `CHROMIX` appropritely and install the helper script in
+environment variable `CHROMIX` appropriately and install the helper script in
 some suitable directory on your `PATH`.
 
 Closing Comments
