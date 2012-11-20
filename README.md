@@ -154,6 +154,14 @@ node chromix.js with http://www.bbc.co.uk/news/ reload
 ```
 Reload the indicated tab.
 
+#### ReloadWithoutCache
+
+Example:
+```
+node chromix.js with http://www.bbc.co.uk/news/ reloadWithoutcache
+```
+Reload the indicated tab, but force bypass of cache.
+
 #### Close
 
 Example:

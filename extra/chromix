@@ -3,7 +3,7 @@
 if [ -z "$CHROMIX" ]
 then
    cat <<EOF
-Error: \$CHROMIX not set.
+Error: \$CHROMIX is not set.
 
 Set the CHROMIX environment variable to the path of the chromix Javascript file.
 For example, put something like the following in your startup scripts:
