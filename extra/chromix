@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ -z "$CHROMIX" ]
+then
+   {
+     echo "Set the CHROMIX environment to the path to the chromix Javascript file"
+     echo
+     echo "For example, put something like the following in your startup scripts:"
+     echo "  export CHROMIX=$HOME/local/project/chromix/script/chromix.js"
+   } >&2
+   exit 1
+fi
+
+exec node "$CHROMIX" "$@"
+
