@@ -54,6 +54,9 @@ This produces no output, but yields an exit code of `0` if chromix was able to
 ping chrome, and non-zero otherwise.  It can be useful in scripts for checking
 whether chrome is running.
 
+This is the default command if no arguments are provided to chromix.  So the
+`ping`, here, can be ommitted.
+
 #### Load
 
 Example:
