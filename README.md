@@ -170,6 +170,15 @@ node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 Visit `http://www.bbc.co.uk/news/` in the current tab.
 
+#### List
+
+Example:
+```
+node chromix.js with chrome list
+```
+List all open chrome tabs to standard output, one per line.  The output format
+is: the tab identifier, the URL and the title.
+
 Notes
 -----
 

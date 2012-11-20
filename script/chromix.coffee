@@ -57,7 +57,8 @@ class Selector
     @selector.current  = (win,tab) -> win.type == "normal" and tab.active
     @selector.other    = (win,tab) -> win.type == "normal" and not tab.active
     @selector.inactive = (win,tab) -> win.type == "normal" and not tab.active
-    @selector.normal   = (win,tab) => @fetch("http")(win,tab) or @fetch("file")(win,tab)  or @fetch("ftp")(win,tab)
+    @selector.normal   = (win,tab) => "http file ftp".split(" ").reduce ( (p,c) => p || @fetch(c) win, tab), false
+    # @selector.normal   = (win,tab) => @fetch("http")(win,tab) or @fetch("file")(win,tab)  or @fetch("ftp")(win,tab)
     @selector.chrome   = (win,tab) => not @fetch("normal")(win,tab)
     @selector.http     = @fetch "https?://"
     @selector.file     = @fetch "file://"
@@ -225,6 +226,13 @@ tabOperations =
       return echoErr "invalid goto: #{msg}" unless msg.length == 1 and msg[0]
       url = msg[0]
       ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: url } ], tabCallback tab, "goto", callback
+
+  # List tab details to stdout.
+  list:
+    ( msg, tab, callback=null) ->
+      return echoErr "invalid list: #{msg}" unless msg.length == 0
+      echo "#{tab.id} #{tab.url} #{tab.title}"
+      callback() if callback
 
 generalOperations =
 
