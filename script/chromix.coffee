@@ -199,7 +199,7 @@ doIf = (test, msg, callback, work) ->
     work()
   else
     echoErr msg
-    callback()
+    callback 1
 
 # #####################################################################
 # Operations:
@@ -338,7 +338,7 @@ generalOperations =
                 @bookmarks msg, callback, output, bmark if bmark
 
   # A custom bookmark listing, just for smblott: "booky" support.
-  booky: (msg, callback=null) ->
+  booky: (msg, callback) ->
     regexp = new RegExp "(\\([A-Z0-9]+\\))", "g"
     @bookmarks msg, callback,
       # Output routine.
@@ -363,7 +363,7 @@ if msg and msg[0] and tabOperations[msg[0]] and not generalOperations[msg[0]]
 # Call the command and exit.
 cmd = msg.splice(0,1)[0]
 if cmd and generalOperations[cmd]
-  generalOperations[cmd] msg, ( -> process.exit 0 )
+  generalOperations[cmd] msg, (code=0) -> process.exit code
 
 else
   echoErr "invalid command: #{cmd} #{msg}"
