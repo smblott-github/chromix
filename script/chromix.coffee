@@ -260,7 +260,7 @@ generalOperations =
     (msg, callback) ->
       doIf msg.length == 1, "invalid load: #{msg}", callback,
         ->
-          url = msg[0]
+          [ url ] = msg
           requireWindow ->
             tabDo selector.fetch(url),
               # `eachTab`.
@@ -291,7 +291,7 @@ generalOperations =
           tabDo predicate,
             # `eachTab`.
             (win, tab, callback) ->
-              cmd = msg[0]
+              [ cmd ] = msg
               if cmd and tabOperations[cmd]
                 tabOperations[cmd] msg[1..], tab, callback
               else
@@ -363,7 +363,7 @@ if args and args[0] and tabOperations[args[0]] and not generalOperations[args[0]
   args.unshift "with", "current"
 
 # Try to do the work.
-cmd = args.splice(0,1)[0]
+[ cmd ] = args.splice(0,1)
 if cmd and generalOperations[cmd]
   generalOperations[cmd] args, (code=0) -> process.exit code
 
