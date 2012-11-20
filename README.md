@@ -105,7 +105,9 @@ node chromix.js without https://www.facebook.com/ close
 ```
 This closes all windows *except* those within the Facebook domain.
 
-`without` is the same as `with`, except that the test is inverted.
+`without` is the same as `with`, except that the test is inverted.  So
+`without normal` is the same as `with normal`, and `without current` is the
+same as `with other`.
 
 #### Window
 
