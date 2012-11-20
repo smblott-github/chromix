@@ -74,7 +74,7 @@ selector = new Selector()
 
 class WS
   constructor: ->
-    @whitespace = new RegExp "\\s+"
+    @whitespace = /\s+/
     @queue = []
     @ready = false
     @callbacks = {}
@@ -94,20 +94,20 @@ class WS
     # Handle an incoming message.
     @ws.on "message",
       (msg) =>
-        msg = msg.split @whitespace
-        [ signal, msgId, type, response ] = msg
+        [ signal, msgId, type, response ] = msg = msg.split @whitespace
         # Is the message for us?
-        return unless signal == chromiCap and @callbacks[msgId]
-        switch type
-          when "info"
-            # Quietly ignore these.
-            true
-          when "done"
-            @callback msgId, response
-          when "error"
-            @callback msgId
-          else
-            echoErr msg
+        if signal == chromiCap and @callbacks[msgId]
+          switch type
+            when "info"
+              # Quietly ignore these.
+              true
+            when "done"
+              @callback msgId, response
+            when "error"
+              # TODO: Need to think more carefully about how to handle this case.
+              @callback msgId
+            else
+              echoErr msg
 
   # Send a request to chrome.
   # If the websocket is already connected, then the request is sent immediately.  Otherwise, it is cached
@@ -122,17 +122,16 @@ class WS
   register: (id, callback) ->
     # Add `callback` to a dict of callbacks hashed on their request `id`.
     @callbacks[id] = callback
-    #  Set timeout,  Timeouts are never cancelled.  If the request has successfully completed by the time the
-    #  timeout fires, then the callback will already have been removed from the list of callbacks (so it's
-    #  safe).
-    setTimeout ( => if @callbacks[id] then process.exit 1 else true ), conf.timeout 
+    #  Set timeout.  Timeouts are never cancelled.  If the request has successfully completed by the time the
+    #  timeout fires, then the callback will already have been removed from the list of callbacks .. so it's
+    #  safe.
+    setTimeout ( => process.exit 1 if @callbacks[id] ), conf.timeout 
 
   # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
-    if @callbacks[id]
-      callback = @callbacks[id]
-      delete @callbacks[id]
-      callback argument
+    callback = @callbacks[id]
+    delete @callbacks[id]
+    callback argument
 
   # `func`: a string of the form "chrome.windows.getAll"
   # `args`: a list of arguments for `func`
@@ -145,7 +144,6 @@ class WS
     @send msg, (response) -> callback.apply null, JSON.parse decodeURIComponent response
 
   # TODO: Use IP address/port for ID?
-  #
   createId: -> Math.floor Math.random() * 2000000000
 
 ws = new WS()
@@ -164,8 +162,8 @@ tabDo = (predicate, eachTab, done) ->
     (wins) ->
       count = 0
       intransit = 0
-      for win in wins
-        for tab in ( win.tabs.filter (t) -> predicate win, t )
+      wins.forEach (win) ->
+        win.tabs.filter((tab) -> predicate win, tab).forEach (tab) ->
           count += 1
           intransit += 1
           eachTab win, tab, ->
@@ -175,13 +173,13 @@ tabDo = (predicate, eachTab, done) ->
             process.nextTick ->
               intransit -= 1
               done count if intransit == 0
-      done count if count == 0
+      done 0 if count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
   (response) ->
     echo "done #{name}: #{tab.id} #{tab.url}"
-    callback() if callback
+    callback()
 
 # If there is an existing window, call `callback`, otherwise create one and call `callback`.
 requireWindow = (callback) ->
@@ -191,13 +189,13 @@ requireWindow = (callback) ->
     # Done.
     (count) -> if 0 < count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
 
-# Call `work` if test is true, otherwise output error `msg` and call `callback`.
-doIf = (test, msg, callback, work) ->
+# Call `work` if test is true, otherwise output error `errMsg` and call `callback`.
+doIf = (test, errMsg, callback, work) ->
   if test
-    # We assume that `work` itself eventually calls `callback`.
+    # We assume/require that `work` itself eventually calls `callback`.
     work()
   else
-    echoErr msg
+    echoErr errMsg
     callback 1
 
 # #####################################################################
@@ -254,9 +252,9 @@ generalOperations =
       doIf msg.length == 0, "invalid window: #{msg}", callback,
         -> requireWindow -> callback()
 
-  # Locate all tabs matching `url` and focus it.  Normally, there should be just one match or none.
+  # Locate all tabs matching `url` and focus them.  Normally, there should be just one match or none.
   # If there is no match, then create a new tab and load `url`.
-  # When done, call `callback` (if provided).
+  # When done, call `callback`.
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
   load:
     (msg, callback) ->
@@ -265,18 +263,20 @@ generalOperations =
           url = msg[0]
           requireWindow ->
             tabDo selector.fetch(url),
-              # `eachTab`
+              # `eachTab`.
               (win, tab, callback) ->
-                tabOperations.focus [], tab, ->
-                  if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
-              # `done`
+                tabOperations.focus [], tab,
+                  -> if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+              # `done`.
               (count) ->
                 if count == 0
+                  # No matches, so create tab.
                   ws.do "chrome.tabs.create", [{ url: url }],
                     (response) ->
                       echo "done create: #{url}"
                       callback()
                 else
+                  # We're done.
                   callback()
 
   # Apply one of `tabOperations` to all matching tabs.
@@ -289,14 +289,14 @@ generalOperations =
             predicate = selector.fetch(what)
           #
           tabDo predicate,
-            # `eachTab`
+            # `eachTab`.
             (win, tab, callback) ->
               cmd = msg[0]
               if cmd and tabOperations[cmd]
                 tabOperations[cmd] msg[1..], tab, callback
               else
                 echoErr "invalid with command: #{cmd}", true
-            # `done`
+            # `done`.
             (count) ->
               callback()
 
@@ -318,24 +318,30 @@ generalOperations =
     (msg, callback, output=null, bookmark=null) ->
       doIf msg.length == 0, "invalid bookmarks: #{msg}", callback,
         =>
-          if not bookmark
-            # First time through (this *is not* a recursive call).
-            ws.do "chrome.bookmarks.getTree", [],
-              (bookmarks) =>
-                bookmarks.forEach (bmark) =>
-                  @bookmarks msg, callback, output, bmark if bmark
-                callback()
-          else
-            # All other times through (this *is* a recursive call).
-            if bookmark.url and bookmark.title
-              if output then output bookmark else echo "#{bookmark.url} #{bookmark.title}"
-            if bookmark.children
-              bookmark.children.forEach (bmark) =>
-                @bookmarks msg, callback, output, bmark if bmark
+          # Create and use an auxilliary function here.  This avoids repeatedly (and unnecessarily) checking
+          # the arguments and building new functions on the fly.
+          doBookmarks =
+            (msg, callback, output=null, bookmark=null) ->
+              if not bookmark
+                # First time through (this *is not* a recursive call).
+                ws.do "chrome.bookmarks.getTree", [],
+                  (bookmarks) ->
+                    bookmarks.forEach (bmark) ->
+                      doBookmarks msg, callback, output, bmark if bmark
+                    callback()
+              else
+                # All other times through (this *is* a recursive call).
+                if bookmark.url and bookmark.title
+                  if output then output bookmark else echo "#{bookmark.url} #{bookmark.title}"
+                if bookmark.children
+                  bookmark.children.forEach (bmark) ->
+                    doBookmarks msg, callback, output, bmark if bmark
+          #
+          doBookmarks msg, callback, output, bookmark
 
   # A custom bookmark listing, just for smblott: "booky" support.
   booky: (msg, callback) ->
-    regexp = new RegExp "(\\([A-Z0-9]+\\))", "g"
+    regexp = /(\([A-Z0-9]+\))/g
     @bookmarks msg, callback,
       # Output routine.
       (bmark) ->
@@ -346,21 +352,21 @@ generalOperations =
 # #####################################################################
 # Execute command line arguments.
 
-msg = conf._
+args = conf._
 
 # Might as well "ping" without any arguments.
-msg = [ "ping" ] if msg.length == 0
+args = [ "ping" ] if args.length == 0
 
 # If the command is in `tabOperations`, then add "with current" to the start of it.  This gives a sensible,
 # default meaning for these commands.
-if msg and msg[0] and tabOperations[msg[0]] and not generalOperations[msg[0]]
-  msg.unshift "with", "current"
+if args and args[0] and tabOperations[args[0]] and not generalOperations[args[0]]
+  args.unshift "with", "current"
 
 # Try to do the work.
-cmd = msg.splice(0,1)[0]
+cmd = args.splice(0,1)[0]
 if cmd and generalOperations[cmd]
-  generalOperations[cmd] msg, (code=0) -> process.exit code
+  generalOperations[cmd] args, (code=0) -> process.exit code
 
 else
-  echoErr "invalid command: #{cmd} #{msg}", true
+  echoErr "invalid command: #{cmd} #{args}", true
 
