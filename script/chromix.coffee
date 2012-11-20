@@ -121,11 +121,11 @@ class WS
 
   register: (id, callback) ->
     # Add `callback` to a dict of callbacks hashed on their request `id`.
-    #
-    # Timeouts are never cancelled.  If the request has successfully completed by the time the timeout fires,
-    # then the callback will already have been removed from the list of callbacks (so it's safe).
-    setTimeout ( => @callback id ), conf.timeout
     @callbacks[id] = callback
+    #  Set timeout,  Timeouts are never cancelled.  If the request has successfully completed by the time the
+    #  timeout fires, then the callback will already have been removed from the list of callbacks (so it's
+    #  safe).
+    setTimeout ( => if @callbacks[id] then process.exit 1 else true ), conf.timeout 
 
   # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
