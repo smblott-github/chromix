@@ -75,20 +75,35 @@ node chromix.js with other close
 ```
 This closes all tabs except the focused one.
 
+Anotherxample:
+```
+node chromix.js with chrome close
+```
+This closes all tabs which *aren't* `http`, `file` or `ftp` protocols.
+
 The first argument to `with` specifies what the command applies to (`other`,
 above,  means "all non-focused tab"), and the second and subsequent arguments are a tab
 command and *its* arguments (just `close`, above).
 
 With `with`, tabs can be specified in a number of ways: `all`, `current`, `other`,
-`http` or `file`.  Any other argument to `with` is taken to be a pattern which
-is used to match tabs.  Patterns must match from the start of the URL and may
-contain Javascript RegExp operators.
+`http`, `file`, `ftp`, `normal` (meaning `http`, `file` or `ftp`), or `chrome` (meaning not `normal`).  Any
+other argument to `with` is taken to be a pattern which is used to match tabs.
+Patterns must match from the start of the URL and may contain Javascript RegExp
+operators.
 
 Here's an example:
 ```
 node chromix.js with "file:///.*/slidy/.*.html" reload
 ```
 This reloads all tabs containing HTML files under directories named `slidy`.
+
+#### Window
+
+Example:
+```
+node chromix.js window
+```
+This ensures there is at least one chrome window.  It does not start chrome if chrome is not running.
 
 #### Bookmarks
 
@@ -97,6 +112,14 @@ Example:
 node chromix.js bookmarks
 ```
 This outputs (to `stdout`) a lit of all chrome bookmarks, one per line.
+
+#### Booky
+
+Example:
+```
+node chromix.js booky
+```
+This outputs (to `stdout`) a list of chrome bookmarks, but in a different format.
 
 ### Tab Commands
 

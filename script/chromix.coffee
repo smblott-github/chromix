@@ -57,9 +57,11 @@ class Selector
     @selector.current  = (win,tab) -> win.type == "normal" and tab.active
     @selector.other    = (win,tab) -> win.type == "normal" and not tab.active
     @selector.inactive = (win,tab) -> win.type == "normal" and not tab.active
-    @selector.normal   = @fetch "https?://"
+    @selector.normal   = (win,tab) => @fetch("http")(win,tab) or @fetch("file")(win,tab)  or @fetch("ftp")(win,tab)
+    @selector.chrome   = (win,tab) => not @fetch("normal")(win,tab)
     @selector.http     = @fetch "https?://"
     @selector.file     = @fetch "file://"
+    @selector.ftp      = @fetch "ftp://"
 
 selector = new Selector()
 
@@ -225,6 +227,12 @@ tabOperations =
       ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: url } ], tabCallback tab, "goto", callback
 
 generalOperations =
+
+  # Ensure chrome has at least one window open.
+  window:
+    (msg, callback) ->
+      return echoErr "invalid load: #{msg}" unless msg.length == 0
+      requireWindow -> callback()
 
   # Locate all tabs matching `url` and focus it.  Normally, there should be just one match or none.
   # If there is no match, then create a new tab and load `url`.
