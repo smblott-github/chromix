@@ -9,7 +9,7 @@ Here's a use case.  Say you're editing an
 [markdown](http://daringfireball.net/projects/markdown/) document.  The work
 flow is: edit, compile, and reload the chrome tab to see your changes.
 
-Chromix can help automate this, particularly the last step.  Change the build step to:
+Chromix can automate this, particularly the last step.  Change the build step to:
 ```
 markdown somefile.md > somefile.html && node chromix.js load file://$PWD/somefile.html
 ```
@@ -20,14 +20,12 @@ of key strokes.
 Installation
 ------------
 
-Chromix is in three parts and communication is as follows:
+Chromix involves three components:
 
-  - Chromix client <--> Chromix server <--> Chromi extension
-
-  - The Chrome extension (known as Chromi) is packaged separately.  It is
+  - The Chrome extension (known as [Chromi](https://github.com/smblott-github/chromi)) is packaged separately.  It is
     available either at the [Chrome Web
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
-    or from [source](https://github.com/smblott-github/chromi).
+    or from [GitHub](https://github.com/smblott-github/chromi).
 
   - The server is `script/server.{coffee,js}`.
 
@@ -37,17 +35,16 @@ Chromix is in three parts and communication is as follows:
 
 Dependencies include, but may not be limited to:
 
-  - [Node.js](http://nodejs.org/)
-  
+  - [Node.js](http://nodejs.org/)  
     (Install with your favourite package manager, perhaps something like `sudo apt-get install node`.)
-  - [Coffeescript](http://coffeescript.org/)
-  
+
+  - [Coffeescript](http://coffeescript.org/)  
     (Install with something like `npm install coffee-script`.)
-  - [Optimist](https://github.com/substack/node-optimis.)
 
+  - [Optimist](https://github.com/substack/node-optimist)  
     (Install with something like `npm install optimist`.)
-  - The [ws](http://einaros.github.com/ws/) websocket implementation
 
+  - The [ws](http://einaros.github.com/ws/) websocket implementation  
     (Install with something like `npm install ws`.)
 
 ### Build
