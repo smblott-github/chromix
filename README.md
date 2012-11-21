@@ -54,8 +54,9 @@ Dependencies include, but may not be limited to:
 
 ### Build
 
-Run `cake build` in the project's root folder.  This "compiles" the CoffeeScript
-source to JavaScript.
+[Download](https://github.com/smblott-github/chromix/downloads) the package,
+unpack it and run `cake build` in the project's root folder.  This "compiles"
+the CoffeeScript source to JavaScript.
 
 `cake` is installed by `npm` as part of the `coffee-script` package.  Depending
 on how the install is handled, you may have to search out where `npm` has
