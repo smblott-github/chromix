@@ -101,8 +101,7 @@ Chromix Commands
 There are two types of Chromix commands: 
 [general commands])https://github.com/smblott-github/chromix#general-commands) and
 [tab commands](https://github.com/smblott-github/chromix#tab-commands).  The
-latter operate on individual tabs, and are usually accessed via the
-`[with](https://github.com/smblott-github/chromix#with)` general command.
+latter group operate on tabs.
 
 ### General Commands
 
