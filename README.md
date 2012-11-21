@@ -1,4 +1,4 @@
-chromix
+Chromix
 =======
 
 Chromix is a command-line utility for controlling Google chrome.  It can be
@@ -29,7 +29,7 @@ The dependencies for chromix are the same as those for chromi -- see
 
 Chromix is compiled with `cake build` in the project's root folder.
 
-The resulting Javascript file (`script/chromix.js`) can be made executable and
+The resulting JavaScript file (`script/chromix.js`) can be made executable and
 installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
@@ -55,7 +55,7 @@ ping chrome, and non-zero otherwise.  It can be useful in scripts for checking
 whether chrome is running.
 
 This is the default command if no arguments are provided to chromix.  So the
-`ping`, here, can be ommitted.
+`ping`, here, can be omitted.
 
 #### Load
 
@@ -78,7 +78,7 @@ node chromix.js with other close
 ```
 This closes all tabs except the focused one.
 
-Anotherxample:
+Another example:
 ```
 node chromix.js with chrome close
 ```
@@ -92,7 +92,7 @@ With `with`, tabs can be specified in a number of ways: `all`, `current`,
 `other`, `http` (including HTTPS), `file`, `ftp`, `normal` (meaning `http`,
 `file` or `ftp`), or `chrome` (meaning not `normal`).  Any other argument to
 `with` is taken to be a pattern which is used to match tabs.  Patterns must
-match from the start of the URL and may contain Javascript RegExp operators.
+match from the start of the URL and may contain JavaScript RegExp operators.
 
 Here's an example:
 ```
