@@ -17,26 +17,21 @@ Now, chrome reloads your work every time it changes.  And with suitable key
 bindings in your text editor, the build-view process can involve just a couple
 of key strokes.
 
-Communication is as follows:
-
-  - Chromix client <--> Chromix server <--> Chromi extension
-
-    Only the client and the server are included in this project (see below).
-
 Installation
 ------------
 
-Chromix is in three parts:
+Chromix is in three parts and communication is as follows:
 
-  - A chrome extension known as "chromi".
-  
-    Chromi is packaged separately.  It is available either at the [Chrome Web
+  - Chromix client <--> Chromix server <--> Chromi extension
+
+  - The chrome extension known as Chromi is packaged separately.  It is
+    available either at the [Chrome Web
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
     or from [source](https://github.com/smblott-github/chromi).
 
-  - A server (`script/server.{coffee,js}`.
+  - The server is `script/server.{coffee,js}`.
 
-  - A client (`script/chromix.{coffee,js}`.
+  - The client is `script/chromix.{coffee,js}`.
 
 ### Dependencies
 
