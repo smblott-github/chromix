@@ -20,16 +20,62 @@ of key strokes.
 Installation
 ------------
 
-Chromix depends on [Chromi](https://github.com/smblott-github/chromi).  So the
-first step is to [install
-chromi](https://github.com/smblott-github/chromi#installation).
+Chromix is in three parts and communication is as follows:
 
-The dependencies for chromix are the same as those for chromi -- see
-[here](https://github.com/smblott-github/chromi#dependencies).
+  - Chromix client <--> Chromix server <--> Chromi extension
 
-Chromix is compiled with `cake build` in the project's root folder.
+  - The Chrome extension (known as Chromi) is packaged separately.  It is
+    available either at the [Chrome Web
+    Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
+    or from [source](https://github.com/smblott-github/chromi).
 
-The resulting JavaScript file (`script/chromix.js`) can be made executable and
+  - The server is `script/server.{coffee,js}`.
+
+  - The client is `script/chromix.{coffee,js}`.
+
+### Dependencies
+
+Dependencies include, but may not be limited to:
+
+  - [Node.js](http://nodejs.org/)
+  
+    (Install with your favourite package manager, perhaps something like `sudo apt-get install node`.)
+  - [Coffeescript](http://coffeescript.org/)
+  
+    (Install with something like `npm install coffee-script`.)
+  - [Optimist](https://github.com/substack/node-optimis.)
+
+    (Install with something like `npm install optimist`.)
+  - The [ws](http://einaros.github.com/ws/) websocket implementation
+
+    (Install with something like `npm install ws`.)
+
+### Build
+
+Run `cake build` in the project's root folder.  This "compiles" to CoffeeScript
+source to Javascript.
+
+`cake` is installed by `npm` as part of the `coffee-script` package.  Depending
+on how the install is handled, you may have to search out where `npm` has
+installed `cake`.
+
+### Server Installation
+
+The server can be run with an invocation such as:
+```
+node script/server.js
+```
+The extension broadcasts a heartbeat every five seconds.  If everything's
+working correctly, then these heartbeats (and all other messages) appear on the
+server's standard output.
+
+The server might beneficially be run under the control of a supervisor daemon
+such as [daemontools](http://cr.yp.to/daemontools.html) or
+[supervisord](http://supervisord.org/).
+
+### Client Installation
+
+The Javascript file (`script/chromix.js`) can be made executable and
 installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
@@ -40,7 +86,7 @@ node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
 Chromix Commands
 ----------------
 
-There are two types of chromix commands: *general* commands and *tab* commands.
+There are two types of Chromix commands: *general* commands and *tab* commands.
 
 ### General Commands
 
@@ -50,9 +96,9 @@ Example:
 ```
 node chromix.js ping
 ```
-This produces no output, but yields an exit code of `0` if chromix was able to
-ping chrome, and non-zero otherwise.  It can be useful in scripts for checking
-whether chrome is running.
+This produces no output, but yields an exit code of `0` if Chromix was able to
+ping Chrome, and non-zero otherwise.  It can be useful in scripts for checking
+whether Chrome is running.
 
 This is the default command if no arguments are provided to chromix.  So the
 `ping`, here, can be omitted.
@@ -118,7 +164,7 @@ Example:
 ```
 node chromix.js window
 ```
-This ensures there is at least one chrome window.  It does not start chrome if chrome is not running.
+This ensures there is at least one Chrome window.  It does not start Chrome if Chrome is not running.
 
 #### Bookmarks
 
@@ -126,7 +172,7 @@ Example:
 ```
 node chromix.js bookmarks
 ```
-This outputs (to `stdout`) a lit of all chrome bookmarks, one per line.
+This outputs (to `stdout`) a lit of all Chrome bookmarks, one per line.
 
 #### Booky
 
@@ -134,7 +180,7 @@ Example:
 ```
 node chromix.js booky
 ```
-This outputs (to `stdout`) a list of chrome bookmarks, but in a different format.
+This outputs (to `stdout`) a list of Chrome bookmarks, but in a different format.
 
 ### Tab Commands
 
@@ -184,7 +230,7 @@ Example:
 ```
 node chromix.js with chrome list
 ```
-List all open chrome tabs to standard output, one per line.  The output format
+List all open Chrome tabs to standard output, one per line.  The output format
 is: the tab identifier, the URL and the title.
 
 Notes
@@ -203,6 +249,17 @@ is shorthand for:
 node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 
+### Implicit `ping`
+
+If *no* command is provided, then `ping` is assumed.  So:
+```
+node chromix.js
+```
+is shorthand for:
+```
+node chromix.js ping
+```
+
 ### Wrapper
 
 The helper script `extra/chromix` may prove helpful.  To use it, set the
@@ -215,6 +272,6 @@ Closing Comments
 Chromix is a work in progress and may be subject to either gentle evolution or
 abrupt change.
 
-Please let me (Steve Blott) know if you have any ideas as to how chromix might
+Please let me (Steve Blott) know if you have any ideas as to how Chromix might
 be improved.
 

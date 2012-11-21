@@ -208,14 +208,14 @@ tabOperations =
   # Focus tab.
   focus:
     ( msg, tab, callback) ->
-      doIf msg.length == 0, "invalid focus: #{msg}", callback,
-        -> ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
+      doIf msg.length == 0, "invalid focus: #{msg}", callback, ->
+        ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
         
   # Reload tab.
   reload:
     ( msg, tab, callback, bypassCache=false) ->
-      doIf msg.length == 0, "invalid reload: #{msg}", callback,
-        -> ws.do "chrome.tabs.reload", [ tab.id, {bypassCache: bypassCache} ], tabCallback tab, "reload", callback
+      doIf msg.length == 0, "invalid reload: #{msg}", callback, ->
+        ws.do "chrome.tabs.reload", [ tab.id, {bypassCache: bypassCache} ], tabCallback tab, "reload", callback
         
   # Reload tab -- but bypass cache.
   reloadWithoutCache:
@@ -233,24 +233,22 @@ tabOperations =
   # Typically used with "with current", either explicitly or implicitly.
   goto:
     ( msg, tab, callback) ->
-      doIf msg.length == 1, "invalid goto: #{msg}", callback,
-        -> ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: msg[0] } ], tabCallback tab, "goto", callback
+      doIf msg.length == 1, "invalid goto: #{msg}", callback, ->
+        ws.do "chrome.tabs.update", [ tab.id, { selected: true, url: msg[0] } ], tabCallback tab, "goto", callback
 
   # List tab details to stdout.
   list:
     ( msg, tab, callback) ->
-      doIf msg.length == 0, "invalid list: #{msg}", callback,
-        ->
-          echo "#{tab.id} #{tab.url} #{tab.title}"
-          callback()
+      doIf msg.length == 0, "invalid list: #{msg}", callback, ->
+        echo "#{tab.id} #{tab.url} #{tab.title}"
+        callback()
 
 generalOperations =
 
   # Ensure chrome has at least one window open.
   window:
     (msg, callback) ->
-      doIf msg.length == 0, "invalid window: #{msg}", callback,
-        -> requireWindow -> callback()
+      doIf msg.length == 0, "invalid window: #{msg}", callback, -> requireWindow -> callback()
 
   # Locate all tabs matching `url` and focus them.  Normally, there should be just one match or none.
   # If there is no match, then create a new tab and load `url`.
@@ -258,96 +256,83 @@ generalOperations =
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
   load:
     (msg, callback) ->
-      doIf msg.length == 1, "invalid load: #{msg}", callback,
-        ->
-          [ url ] = msg
-          requireWindow ->
-            tabDo selector.fetch(url),
-              # `eachTab`.
-              (win, tab, callback) ->
-                tabOperations.focus [], tab,
-                  -> if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
-              # `done`.
-              (count) ->
-                if count == 0
-                  # No matches, so create tab.
-                  ws.do "chrome.tabs.create", [{ url: url }],
-                    (response) ->
-                      echo "done create: #{url}"
-                      callback()
-                else
-                  # We're done.
-                  callback()
+      doIf msg.length == 1, "invalid load: #{msg}", callback, ->
+        [ url ] = msg
+        requireWindow ->
+          tabDo selector.fetch(url),
+            # `eachTab`.
+            (win, tab, callback) ->
+              tabOperations.focus [], tab,
+                -> if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+            # `done`.
+            (count) ->
+              if count == 0
+                # No matches, so create tab.
+                ws.do "chrome.tabs.create", [{ url: url }],
+                  (response) ->
+                    echo "done create: #{url}"
+                    callback()
+              else
+                # We're done.
+                callback()
 
   # Apply one of `tabOperations` to all matching tabs.
   with:
     (msg, callback, predicate=null) ->
-      doIf (1 <= msg.length and predicate) or (2 <= msg.length and not predicate), "invalid with: #{msg}", callback,
-        ->
-          if not predicate
-            [ what ] = msg.splice 0, 1
-            predicate = selector.fetch(what)
-          #
-          tabDo predicate,
-            # `eachTab`.
-            (win, tab, callback) ->
-              [ cmd ] = msg
-              if cmd and tabOperations[cmd]
-                tabOperations[cmd] msg[1..], tab, callback
-              else
-                echoErr "invalid with command: #{cmd}", true
-            # `done`.
-            (count) ->
-              callback()
+      doIf (1 <= msg.length and predicate) or (2 <= msg.length and not predicate), "invalid with: #{msg}", callback, ->
+        if not predicate
+          [ what ] = msg.splice 0, 1
+          predicate = selector.fetch(what)
+        #
+        tabDo predicate,
+          # `eachTab`.
+          (win, tab, callback) ->
+            [ cmd ] = msg
+            if cmd and tabOperations[cmd]
+              tabOperations[cmd] msg[1..], tab, callback
+            else
+              echoErr "invalid with command: #{cmd}", true
+          # `done`.
+          (count) ->
+            callback()
 
   # Apply one of `tabOperations` to all *not* matching tabs.
   without:
     (msg, callback) ->
-      doIf 2 <= msg.length, "invalid without: #{msg}", callback,
-        =>
-          [ what ] = msg.splice 0, 1
-          @with msg, callback, (win,tab) -> not selector.fetch(what) win, tab
+      doIf 2 <= msg.length, "invalid without: #{msg}", callback, =>
+        [ what ] = msg.splice 0, 1
+        @with msg, callback, (win,tab) -> not selector.fetch(what) win, tab
 
   ping:
     (msg, callback) ->
-      doIf msg.length == 0, "invalid ping: #{msg}", callback,
-        -> ws.do "", [], (response) -> callback()
+      doIf msg.length == 0, "invalid ping: #{msg}", callback, ->
+        ws.do "", [], (response) -> callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
   bookmarks:
-    (msg, callback, output=null, bookmark=null) ->
-      doIf msg.length == 0, "invalid bookmarks: #{msg}", callback,
-        =>
-          # Create and use an auxilliary function here.  This avoids repeatedly (and unnecessarily) checking
-          # the arguments and building new functions on the fly.
-          doBookmarks =
-            (msg, callback, output=null, bookmark=null) ->
-              if not bookmark
-                # First time through (this *is not* a recursive call).
-                ws.do "chrome.bookmarks.getTree", [],
-                  (bookmarks) ->
-                    bookmarks.forEach (bmark) ->
-                      doBookmarks msg, callback, output, bmark if bmark
-                    callback()
-              else
-                # All other times through (this *is* a recursive call).
-                if bookmark.url and bookmark.title
-                  if output then output bookmark else echo "#{bookmark.url} #{bookmark.title}"
-                if bookmark.children
-                  bookmark.children.forEach (bmark) ->
-                    doBookmarks msg, callback, output, bmark if bmark
-          #
-          doBookmarks msg, callback, output, bookmark
+    (msg, callback, output = (bm) -> echo "#{bm.url} #{bm.title}" ) ->
+      doIf msg.length == 0, "invalid bookmarks: #{msg}", callback, =>
+        recursiveBookmarks =
+          (msg, callback, output, bookmark=null) ->
+            if not bookmark
+              ws.do "chrome.bookmarks.getTree", [],
+                (bookmarks) ->
+                  bookmarks.forEach (bmark) -> recursiveBookmarks msg, callback, output, bmark if bmark
+                  callback()
+            else
+              output bookmark if bookmark.url and bookmark.title
+              if bookmark.children
+                bookmark.children.forEach (bmark) -> recursiveBookmarks msg, callback, output, bmark
+        #
+        recursiveBookmarks msg, callback, output
 
   # A custom bookmark listing, just for smblott: "booky" support.
   booky: (msg, callback) ->
     regexp = /(\([A-Z0-9]+\))/g
-    @bookmarks msg, callback,
-      # Output routine.
-      (bmark) ->
-        ( bmark.title.match(regexp) || [] ).forEach (bm) ->
-          bm = bm.slice(1,-1).toLowerCase()
-          echo "#{bm} #{bmark.url}"
+    @bookmarks msg, callback, (bmark) ->
+      ( bmark.title.match(regexp) || [] ).forEach (bm) ->
+        bm = bm.slice(1,-1).toLowerCase()
+        echo "#{bm} #{bmark.url}"
 
 # #####################################################################
 # Execute command line arguments.
