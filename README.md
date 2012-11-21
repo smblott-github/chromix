@@ -24,7 +24,7 @@ Chromix is in three parts and communication is as follows:
 
   - Chromix client <--> Chromix server <--> Chromi extension
 
-  - The chrome extension known as Chromi is packaged separately.  It is
+  - The chrome extension (known as Chromi) is packaged separately.  It is
     available either at the [Chrome Web
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
     or from [source](https://github.com/smblott-github/chromi).
