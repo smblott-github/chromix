@@ -17,6 +17,12 @@ Now, chrome reloads your work every time it changes.  And with suitable key
 bindings in your text editor, the build-view process can involve just a couple
 of key strokes.
 
+Communication is as follows:
+
+  - Chromix client <--> Chromix server <--> Chromi extension
+
+    Only the client and the server are included in this project (see below).
+
 Installation
 ------------
 
