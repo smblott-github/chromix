@@ -99,22 +99,25 @@ node chromix.js ping
 ```
 This produces no output, but yields an exit code of `0` if Chromix was able to
 ping Chrome, and non-zero otherwise.  It can be useful in scripts for checking
-whether Chrome is running.
+whether Chromi/Chrome is running.
 
 This is the default command if no arguments are provided to chromix.  So the
-`ping`, here, can be omitted.
+`ping`, above, can be omitted.
 
 #### Load
 
 ```
 node chromix.js load https://github.com/
 ```
-This first searches for a tab for which `https://github.com/` is a prefix of
+This first searches for a tab for which `https://github.com/` is contained in
 the tab's URL.  If such a tab is found, it is focussed.  Otherwise, a new tab
 is created for the URL.
 
 Additionally, if the URL is of the form 'file://.*', then the tab is
 reloaded.
+
+If Chrome is running but has no window, then a new window will be created.
+However, if chrome is not running, then Chromix will *not* start it.
 
 #### With
 
@@ -127,23 +130,26 @@ Another example:
 ```
 node chromix.js with chrome close
 ```
-This closes all tabs which *aren't* `http`, `file` or `ftp` protocols.
+This closes all tabs which *aren't* `http://`, `file://` or `ftp://`.
 
-The first argument to `with` specifies what the command applies to (`other`,
-above,  means "all non-focused tab"), and the second and subsequent arguments are a tab
-command and *its* arguments (just `close`, above).
+The first argument to `with` specifies the tabs to which the rest of the command applies.
+`other`, above,  means "all non-focused tabs").  The rest of the command must
+be a [tab command](https://github.com/smblott-github/chromix#tab-commands).
 
-With `with`, tabs can be specified in a number of ways: `all`, `current`,
+Tabs can be specified in a number of ways: `all`, `current`,
 `other`, `http` (including HTTPS), `file`, `ftp`, `normal` (meaning `http`,
 `file` or `ftp`), or `chrome` (meaning not `normal`).  Any other argument to
-`with` is taken to be a pattern which is used to match tabs.  Patterns must
-match from the start of the URL and may contain JavaScript RegExp operators.
+`with` is taken to be a pattern which is used to match tabs.  Patterns may
+contain JavaScript RegExp operators.
 
-Here's an example:
+Here are a couple of examples:
 ```
 node chromix.js with "file:///.*/slidy/.*.html" reload
+node chromix.js with "file://$HOME" reload
 ```
-This reloads all tabs containing HTML files under directories named `slidy`.
+The first reloads all tabs containing HTML *files* under directories named
+`slidy`.  The second reloads all tabs containing files under the user's home
+directory.
 
 #### Without
 
@@ -155,6 +161,13 @@ This closes all windows *except* those within the Facebook domain.
 `without` is the same as `with`, except that the test is inverted.  So
 `without normal` is the same as `with normal`, and `without current` is the
 same as `with other`.
+
+Here's another example
+```
+node chromix.js without "file://$HOME" close
+```
+This closes all tabs *except* those containing files under the user's home
+directory.
 
 #### Window
 
@@ -168,14 +181,14 @@ This ensures there is at least one Chrome window.  It does not start Chrome if C
 ```
 node chromix.js bookmarks
 ```
-This outputs (to `stdout`) a lit of all Chrome bookmarks, one per line.
+This outputs (to `stdout`) a list of all Chrome bookmarks, one per line.
 
 #### Booky
 
 ```
 node chromix.js booky
 ```
-This outputs (to `stdout`) a list of Chrome bookmarks, but in a different format.
+This outputs (to `stdout`) a list of (most) Chrome bookmarks, but in a different format.
 
 ### Tab Commands
 
@@ -198,7 +211,7 @@ Reload the indicated tab.
 ```
 node chromix.js with http://www.bbc.co.uk/news/ reloadWithoutcache
 ```
-Reload the indicated tab, but force bypass of cache.
+Reload the indicated tab, but bypass the cache.
 
 #### Close
 
@@ -213,6 +226,9 @@ Close the indicated tab.
 node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 Visit `http://www.bbc.co.uk/news/` in the current tab.
+
+(The naming here is a little confusing.  Use `load` if you want to focus/switch
+to an existing tab.)
 
 #### List
 
@@ -261,6 +277,6 @@ Closing Comments
 Chromix is a work in progress and may be subject to either gentle evolution or
 abrupt change.
 
-Please let me (Steve Blott) know if you have any ideas as to how Chromix might
-be improved.
+Please post an "Issue" if you have any ideas as to how Chromix might be
+improved.
 
