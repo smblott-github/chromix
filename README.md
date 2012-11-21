@@ -89,12 +89,12 @@ A chromix invocation looks something like:
 node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
 ```
 Or, better still, install the
-[wrapper](https://github.com/smblott-github/chromix#wrapper) shell script
-somewhere on your path.  Then, invocations look more like:
+[wrapper](https://github.com/smblott-github/chromix#wrapper)
+shell script somewhere on your path.  Then, invocations look more like:
 ```
 chromix CHROMIX-COMMAND [ARGUMENTS...]
 ```
-(The following examples all assume that this `chromix` wrapper is used.
+(The following examples all assume that this `chromix` wrapper is used.)
 
 Chromix Commands
 ----------------
