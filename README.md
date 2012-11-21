@@ -99,7 +99,7 @@ Chromix Commands
 ----------------
 
 There are two types of Chromix commands: 
-[general commands])https://github.com/smblott-github/chromix#general-commands) and
+[general commands](https://github.com/smblott-github/chromix#general-commands) and
 [tab commands](https://github.com/smblott-github/chromix#tab-commands).  The
 latter group operate on tabs.
 
