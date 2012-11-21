@@ -17,6 +17,10 @@ Now, chrome reloads your work every time it changes.  And with suitable key
 bindings in your text editor, the build-view process can involve just a couple
 of key strokes.
 
+Jump straight to
+[here](https://github.com/smblott-github/chromix#chromix-commands) for a list
+of available commands.
+
 Installation
 ------------
 
@@ -27,9 +31,10 @@ Chromix involves three components:
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
     or from [GitHub](https://github.com/smblott-github/chromi).
   - A server: `script/server.{coffee,js}`.
-  - A client: `script/chromix.{coffee,js}`.
+  - A client: `script/chromix.{coffee,js}`.  
+    This is Chromix's command-line and scripting utility.
 
-This project provides the Chromix client and server.
+This project provides the Chromix server and client.
 
 There's an explanation of how these three components interact (including an
 example) on the [Chromi site](https://github.com/smblott-github/chromi#details).
@@ -44,13 +49,13 @@ Dependencies include, but may not be limited to:
     (Install with something like `npm install coffee-script`.)
   - [Optimist](https://github.com/substack/node-optimist)  
     (Install with something like `npm install optimist`.)
-  - The [ws](http://einaros.github.com/ws/) websocket implementation  
+  - The [ws](http://einaros.github.com/ws/) web socket implementation  
     (Install with something like `npm install ws`.)
 
 ### Build
 
-Run `cake build` in the project's root folder.  This "compiles" to CoffeeScript
-source to Javascript.
+Run `cake build` in the project's root folder.  This "compiles" the CoffeeScript
+source to JavaScript.
 
 `cake` is installed by `npm` as part of the `coffee-script` package.  Depending
 on how the install is handled, you may have to search out where `npm` has
@@ -62,7 +67,7 @@ The server can be run with an invocation such as:
 ```
 node script/server.js
 ```
-The extension broadcasts a heartbeat every five seconds.  If everything's
+The extension broadcasts a heartbeat every five seconds.  If everything is
 working correctly, then these heartbeats (and all other messages) appear on the
 server's standard output.
 
@@ -72,7 +77,7 @@ such as [daemontools](http://cr.yp.to/daemontools.html) or
 
 ### Client Installation
 
-The Javascript file (`script/chromix.js`) can be made executable and
+The JavaScript file (`script/chromix.js`) can be made executable and
 installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
@@ -89,7 +94,6 @@ There are two types of Chromix commands: *general* commands and *tab* commands.
 
 #### Ping
 
-Example:
 ```
 node chromix.js ping
 ```
@@ -102,7 +106,6 @@ This is the default command if no arguments are provided to chromix.  So the
 
 #### Load
 
-Example:
 ```
 node chromix.js load https://github.com/
 ```
@@ -115,7 +118,6 @@ reloaded.
 
 #### With
 
-Example:
 ```
 node chromix.js with other close
 ```
@@ -145,7 +147,6 @@ This reloads all tabs containing HTML files under directories named `slidy`.
 
 #### Without
 
-Example:
 ```
 node chromix.js without https://www.facebook.com/ close
 ```
@@ -157,7 +158,6 @@ same as `with other`.
 
 #### Window
 
-Example:
 ```
 node chromix.js window
 ```
@@ -165,7 +165,6 @@ This ensures there is at least one Chrome window.  It does not start Chrome if C
 
 #### Bookmarks
 
-Example:
 ```
 node chromix.js bookmarks
 ```
@@ -173,7 +172,6 @@ This outputs (to `stdout`) a lit of all Chrome bookmarks, one per line.
 
 #### Booky
 
-Example:
 ```
 node chromix.js booky
 ```
@@ -183,7 +181,6 @@ This outputs (to `stdout`) a list of Chrome bookmarks, but in a different format
 
 #### Focus
 
-Example:
 ```
 node chromix.js with http://www.bbc.co.uk/news/ focus
 ```
@@ -191,7 +188,6 @@ Focus the indicated tab.
 
 #### Reload
 
-Example:
 ```
 node chromix.js with http://www.bbc.co.uk/news/ reload
 ```
@@ -199,7 +195,6 @@ Reload the indicated tab.
 
 #### ReloadWithoutCache
 
-Example:
 ```
 node chromix.js with http://www.bbc.co.uk/news/ reloadWithoutcache
 ```
@@ -207,7 +202,6 @@ Reload the indicated tab, but force bypass of cache.
 
 #### Close
 
-Example:
 ```
 node chromix.js with http://www.bbc.co.uk/news/ close
 ```
@@ -215,7 +209,6 @@ Close the indicated tab.
 
 #### Goto
 
-Example:
 ```
 node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
@@ -223,7 +216,6 @@ Visit `http://www.bbc.co.uk/news/` in the current tab.
 
 #### List
 
-Example:
 ```
 node chromix.js with chrome list
 ```
