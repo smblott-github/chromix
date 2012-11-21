@@ -294,6 +294,5 @@ Closing Comments
 Chromix is a work in progress and may be subject to either gentle evolution or
 abrupt change.
 
-Please post an "Issue" if you have any ideas as to how Chromix might be
-improved.
+Please post an "Issue" if you have ideas for improving Chromix.
 
