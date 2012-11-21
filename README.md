@@ -1,7 +1,7 @@
 Chromix
 =======
 
-Chromix is a command-line utility for controlling Google chrome.  It can be
+Chromix is a command-line and scripting utility for controlling Google chrome.  It can be
 used, amongst other things, to create, switch, focus, reload and remove tabs.
 
 Here's a use case.  Say you're editing an
@@ -61,6 +61,10 @@ source to JavaScript.
 on how the install is handled, you may have to search out where `npm` has
 installed `cake`.
 
+### Extension Installation
+
+Install [Chromi](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo).
+
 ### Server Installation
 
 The server can be run with an invocation such as:
@@ -88,7 +92,11 @@ node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
 Chromix Commands
 ----------------
 
-There are two types of Chromix commands: *general* commands and *tab* commands.
+There are two types of Chromix commands: 
+[general commands])https://github.com/smblott-github/chromix#general-commands) and
+[tab commands](https://github.com/smblott-github/chromix#tab-commands).  The
+latter operate on individual tabs, and are usually accessed via the
+`[with](https://github.com/smblott-github/chromix#with)` general command.
 
 ### General Commands
 
@@ -98,10 +106,10 @@ There are two types of Chromix commands: *general* commands and *tab* commands.
 node chromix.js ping
 ```
 This produces no output, but yields an exit code of `0` if Chromix was able to
-ping Chrome, and non-zero otherwise.  It can be useful in scripts for checking
+ping Chromi/Chrome, and non-zero otherwise.  It can be useful in scripts for checking
 whether Chromi/Chrome is running.
 
-This is the default command if no arguments are provided to chromix.  So the
+This is the default command if no arguments are provided to chromix, so the
 `ping`, above, can be omitted.
 
 #### Load
@@ -124,7 +132,7 @@ However, if chrome is not running, then Chromix will *not* start it.
 ```
 node chromix.js with other close
 ```
-This closes all tabs except the focused one.
+This closes all tabs except the currently focused one.
 
 Another example:
 ```
@@ -159,7 +167,7 @@ node chromix.js without https://www.facebook.com/ close
 This closes all windows *except* those within the Facebook domain.
 
 `without` is the same as `with`, except that the test is inverted.  So
-`without normal` is the same as `with normal`, and `without current` is the
+`without normal` is the same as `with chrome`, and `without current` is the
 same as `with other`.
 
 Here's another example
@@ -174,7 +182,8 @@ directory.
 ```
 node chromix.js window
 ```
-This ensures there is at least one Chrome window.  It does not start Chrome if Chrome is not running.
+This ensures that there is at least one normal Chrome window.  It does not
+start Chrome if Chrome is not running.
 
 #### Bookmarks
 
@@ -188,9 +197,12 @@ This outputs (to `stdout`) a list of all Chrome bookmarks, one per line.
 ```
 node chromix.js booky
 ```
-This outputs (to `stdout`) a list of (most) Chrome bookmarks, but in a different format.
+This outputs (to `stdout`) a list of (some of) Chrome bookmarks, but in a different format.
 
 ### Tab Commands
+
+Tab commands operate on one or more tabs.  They are usually used with `with` or
+`without`, above.
 
 #### Focus
 
@@ -227,7 +239,7 @@ node chromix.js with current goto http://www.bbc.co.uk/news/
 ```
 Visit `http://www.bbc.co.uk/news/` in the current tab.
 
-(The naming here is a little confusing.  Use `load` if you want to focus/switch
+(The naming here is a little confusing.  Use `load` if you want to focus or switch
 to an existing tab.)
 
 #### List
