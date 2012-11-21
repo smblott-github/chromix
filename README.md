@@ -88,6 +88,13 @@ A chromix invocation looks something like:
 ```
 node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
 ```
+Or, better still, install the
+[wrapper](https://github.com/smblott-github/chromix#wrapper) shell script
+somewhere on your path.  Then, invocations look more like:
+```
+chromix CHROMIX-COMMAND [ARGUMENTS...]
+```
+(The following examples all assume that this `chromix` wrapper is used.
 
 Chromix Commands
 ----------------
@@ -103,7 +110,7 @@ latter operate on individual tabs, and are usually accessed via the
 #### Ping
 
 ```
-node chromix.js ping
+chromix ping
 ```
 This produces no output, but yields an exit code of `0` if Chromix was able to
 ping Chromi/Chrome, and non-zero otherwise.  It can be useful in scripts for checking
@@ -115,7 +122,7 @@ This is the default command if no arguments are provided to chromix, so the
 #### Load
 
 ```
-node chromix.js load https://github.com/
+chromix load https://github.com/
 ```
 This first searches for a tab for which `https://github.com/` is contained in
 the tab's URL.  If such a tab is found, it is focussed.  Otherwise, a new tab
@@ -130,13 +137,13 @@ However, if chrome is not running, then Chromix will *not* start it.
 #### With
 
 ```
-node chromix.js with other close
+chromix with other close
 ```
 This closes all tabs except the currently focused one.
 
 Another example:
 ```
-node chromix.js with chrome close
+chromix with chrome close
 ```
 This closes all tabs which *aren't* `http://`, `file://` or `ftp://`.
 
@@ -152,8 +159,8 @@ contain JavaScript RegExp operators.
 
 Here are a couple of examples:
 ```
-node chromix.js with "file:///.*/slidy/.*.html" reload
-node chromix.js with "file://$HOME" reload
+chromix with "file:///.*/slidy/.*.html" reload
+chromix with "file://$HOME" reload
 ```
 The first reloads all tabs containing HTML *files* under directories named
 `slidy`.  The second reloads all tabs containing files under the user's home
@@ -162,7 +169,7 @@ directory.
 #### Without
 
 ```
-node chromix.js without https://www.facebook.com/ close
+chromix without https://www.facebook.com/ close
 ```
 This closes all windows *except* those within the Facebook domain.
 
@@ -172,7 +179,7 @@ same as `with other`.
 
 Here's another example
 ```
-node chromix.js without "file://$HOME" close
+chromix without "file://$HOME" close
 ```
 This closes all tabs *except* those containing files under the user's home
 directory.
@@ -180,7 +187,7 @@ directory.
 #### Window
 
 ```
-node chromix.js window
+chromix window
 ```
 This ensures that there is at least one normal Chrome window.  It does not
 start Chrome if Chrome is not running.
@@ -188,14 +195,14 @@ start Chrome if Chrome is not running.
 #### Bookmarks
 
 ```
-node chromix.js bookmarks
+chromix bookmarks
 ```
 This outputs (to `stdout`) a list of all Chrome bookmarks, one per line.
 
 #### Booky
 
 ```
-node chromix.js booky
+chromix booky
 ```
 This outputs (to `stdout`) a list of (some of) Chrome bookmarks, but in a different format.
 
@@ -207,35 +214,35 @@ Tab commands operate on one or more tabs.  They are usually used with `with` or
 #### Focus
 
 ```
-node chromix.js with http://www.bbc.co.uk/news/ focus
+chromix with http://www.bbc.co.uk/news/ focus
 ```
 Focus the indicated tab.
 
 #### Reload
 
 ```
-node chromix.js with http://www.bbc.co.uk/news/ reload
+chromix with http://www.bbc.co.uk/news/ reload
 ```
 Reload the indicated tab.
 
 #### ReloadWithoutCache
 
 ```
-node chromix.js with http://www.bbc.co.uk/news/ reloadWithoutcache
+chromix with http://www.bbc.co.uk/news/ reloadWithoutcache
 ```
 Reload the indicated tab, but bypass the cache.
 
 #### Close
 
 ```
-node chromix.js with http://www.bbc.co.uk/news/ close
+chromix with http://www.bbc.co.uk/news/ close
 ```
 Close the indicated tab.
 
 #### Goto
 
 ```
-node chromix.js with current goto http://www.bbc.co.uk/news/
+chromix with current goto http://www.bbc.co.uk/news/
 ```
 Visit `http://www.bbc.co.uk/news/` in the current tab.
 
@@ -245,7 +252,7 @@ to an existing tab.)
 #### List
 
 ```
-node chromix.js with chrome list
+chromix with chrome list
 ```
 List all open Chrome tabs to standard output, one per line.  The output format
 is: the tab identifier, the URL and the title.
@@ -259,22 +266,22 @@ If a tab command is used without a preceding `with` clause, then the current tab
 
 So, the following:
 ```
-node chromix.js goto http://www.bbc.co.uk/news/
+chromix goto http://www.bbc.co.uk/news/
 ```
 is shorthand for:
 ```
-node chromix.js with current goto http://www.bbc.co.uk/news/
+chromix with current goto http://www.bbc.co.uk/news/
 ```
 
 ### Implicit `ping`
 
 If *no* command is provided, then `ping` is assumed.  So:
 ```
-node chromix.js
+chromix
 ```
 is shorthand for:
 ```
-node chromix.js ping
+chromix ping
 ```
 
 ### Wrapper
