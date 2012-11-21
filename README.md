@@ -20,16 +20,61 @@ of key strokes.
 Installation
 ------------
 
-Chromix depends on [Chromi](https://github.com/smblott-github/chromi).  So the
-first step is to [install
-chromi](https://github.com/smblott-github/chromi#installation).
+Chromix is in three parts:
 
-The dependencies for chromix are the same as those for chromi -- see
-[here](https://github.com/smblott-github/chromi#dependencies).
+  - A chrome extension known as "chromi".
+  
+    Chromi is packaged separately.  It is available either at the [Chrome Web
+    Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
+    or from [source](https://github.com/smblott-github/chromi).
 
-Chromix is compiled with `cake build` in the project's root folder.
+  - A server (`script/server.{coffee,js}`.
 
-The resulting Javascript file (`script/chromix.js`) can be made executable and
+  - A client (`script/chromix.{coffee,js}`.
+
+### Dependencies
+
+Dependencies include, but may not be limited to:
+
+  - [Node.js](http://nodejs.org/)
+  
+    (Install with your favourite package manager, perhaps something like `sudo apt-get install node`.)
+  - [Coffeescript](http://coffeescript.org/)
+  
+    (Install with something like `npm install coffee-script`.)
+  - [Optimist](https://github.com/substack/node-optimis.)
+
+    (Install with something like `npm install optimist`.)
+  - The [ws](http://einaros.github.com/ws/) websocket implementation
+
+    (Install with something like `npm install ws`.)
+
+### Build
+
+Run `cake build` in the project's root folder.  This "compiles" to CoffeeScript
+source to Javascript.
+
+`cake` is installed by `npm` as part of the `coffee-script` package.  Depending
+on how the install is handled, you may have to search out where `npm` has
+installed `cake`.
+
+### Server Installation
+
+The server can be run with an invocation such as:
+```
+node script/server.js
+```
+The extension broadcasts a heartbeat every five seconds.  If everything's
+working correctly, then these heartbeats (and all other messages) appear on the
+server's standard output.
+
+The server might beneficially be run under the control of a supervisor daemon
+such as [daemontools](http://cr.yp.to/daemontools.html) or
+[supervisord](http://supervisord.org/).
+
+### Client Installation
+
+The Javascript file (`script/chromix.js`) can be made executable and
 installed in some suitable directory on your `PATH`.
 
 A chromix invocation looks something like:
