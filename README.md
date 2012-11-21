@@ -22,14 +22,17 @@ Installation
 
 Chromix involves three components:
 
-  - The Chrome extension (known as [Chromi](https://github.com/smblott-github/chromi)) is packaged separately.  It is
-    available either at the [Chrome Web
+  - A Chrome extension known as [Chromi](https://github.com/smblott-github/chromi).  
+    Chromi is packaged separately.  It is available either at the [Chrome Web
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
     or from [GitHub](https://github.com/smblott-github/chromi).
+  - A server: `script/server.{coffee,js}`.
+  - A client: `script/chromix.{coffee,js}`.
 
-  - The server is `script/server.{coffee,js}`.
+This project provides the Chromix client and server.
 
-  - The client is `script/chromix.{coffee,js}`.
+There's an explanation of how these three components interact (including an
+example) on the [Chromi site](https://github.com/smblott-github/chromi#details).
 
 ### Dependencies
 
@@ -37,13 +40,10 @@ Dependencies include, but may not be limited to:
 
   - [Node.js](http://nodejs.org/)  
     (Install with your favourite package manager, perhaps something like `sudo apt-get install node`.)
-
   - [Coffeescript](http://coffeescript.org/)  
     (Install with something like `npm install coffee-script`.)
-
   - [Optimist](https://github.com/substack/node-optimist)  
     (Install with something like `npm install optimist`.)
-
   - The [ws](http://einaros.github.com/ws/) websocket implementation  
     (Install with something like `npm install ws`.)
 
