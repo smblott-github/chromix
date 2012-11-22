@@ -54,7 +54,7 @@ class Selector
     @selector.current  = (win,tab) => @fetch("window")(win,tab) and tab.active
     @selector.other    = (win,tab) => @fetch("window")(win,tab) and not tab.active
     @selector.chrome   = (win,tab) => not @fetch("normal")(win,tab)
-    @selector.normal   = (win,tab) => "http file ftp".split(" ").reduce ((p,c) => p || @fetch(c) win, tab), false
+    @selector.normal   = (win,tab) => [ "http", "file", "ftp"].reduce ((p,c) => p || @fetch(c) win, tab), false
     @selector.http     = @fetch "https?://"
     @selector.file     = @fetch "file://"
     @selector.ftp      = @fetch "ftp://"
@@ -82,7 +82,7 @@ class WS
 
     @ws.on "error",
       (error) ->
-        echoErr json(error), true
+        echoErr json(error), true # Exits.
 
     @ws.on "open",
       =>
@@ -104,14 +104,14 @@ class WS
             when "done"
               @callback msgId, response
             when "error"
-              # TODO: Need to think more carefully about how to handle this case.
+              # TODO: What to do here?  Just exit?
               @callback msgId
             else
               echoErr msg
 
   # Send a request to chrome.
-  # If the websocket is already connected, then the request is sent immediately.  Otherwise, it is cached
-  # until the websocket's "open" event fires.
+  # If the websocket is ready, then the request is sent immediately.  Otherwise, it is queued
+  # until the "open" event fires.
   send: (msg, callback) ->
     id = @createId()
     request = =>
@@ -129,16 +129,17 @@ class WS
 
   # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
+    # We can't get here unless the callback exists.
     callback = @callbacks[id]
     delete @callbacks[id]
     callback argument
 
-  # `func`: a string of the form "chrome.windows.getAll"
-  # `args`: a list of arguments for `func`
+  # `func`: a string of the form "chrome.windows.getAll", say.
+  # `args`: a list of arguments for `func`.
   # `callback`: will be called with the response from chrome; the response is `undefined` if the invocation
   #             failed in any way; see the chromi server's output to trace what may have gone wrong.
   #
-  # All JSON and URI encoding/decoding are handled here.
+  # All JSON and URI encoding/decoding is handled here.
   do: (func, args, callback) ->
     msg = [ func, json args ].map(encodeURIComponent).join " "
     @send msg, (response) -> callback.apply null, JSON.parse decodeURIComponent response
@@ -151,13 +152,13 @@ ws = new WS()
 # #####################################################################
 # Tab utilities.
 
-# Traverse tabs, applying `eachTab` to all tabs which match `predicate`.  When done, call `done` with a count
+# Traverse tabs, applying `eachTab` to all tabs which match `predicate`.  When done, call `callback` with a count
 # of the number of matching tabs.
 #
 # `eachTab` must accept three arguments: a window, a tab and a callback (which it *must* invoke after
 # completing its own work).
 #
-tabDo = (predicate, eachTab, done) ->
+tabDo = (predicate, eachTab, callback) ->
   ws.do "chrome.windows.getAll", [{ populate:true }],
     (wins) ->
       count = 0
@@ -166,14 +167,15 @@ tabDo = (predicate, eachTab, done) ->
         win.tabs.filter((tab) -> predicate win, tab).forEach (tab) ->
           count += 1
           intransit += 1
+          # eachTab is of form (win, tab, callback) -> .....
           eachTab win, tab, ->
-            # Defer this callback at least until the next tick of the event loop.  If `eachTab` is
-            # synchronous, then it completes immediately ... and `intransit` would be *guaranteed* to be 0.
-            # So `done` would be called on each iteration.  Deferring here prevents this.
+            # Defer this callback at least until the next tick of the event loop.  If `eachTab` were
+            # synchronous, then it would complete immediately ... and `intransit` would be *guaranteed* to be
+            # 0.  So `callback` would be called on each iteration.  Deferring here prevents this.
             process.nextTick ->
               intransit -= 1
-              done count if intransit == 0
-      done 0 if count == 0
+              callback count if intransit == 0
+      callback 0 if count == 0
 
 # A simple utility for constructing callbacks suitable for use with `ws.do`.
 tabCallback = (tab, name, callback) ->
@@ -184,7 +186,7 @@ tabCallback = (tab, name, callback) ->
 # If there is an existing window, call `callback`, otherwise create one and call `callback`.
 requireWindow = (callback) ->
   tabDo selector.fetch("window"),
-    # eachTab.
+    # eachTab (a no-op, here).
     (win, tab, callback) -> callback()
     # Done.
     (count) -> if 0 < count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
@@ -229,7 +231,7 @@ tabOperations =
       doIf msg.length == 0, "invalid close: #{msg}", callback,
         -> ws.do "chrome.tabs.remove", [ tab.id ], tabCallback tab, "close", callback
 
-  # Goto: load the indicated URL.
+  # Goto: load the indicated URL in the current tab.
   # Typically used with "with current", either explicitly or implicitly.
   goto:
     ( msg, tab, callback) ->
@@ -281,26 +283,25 @@ generalOperations =
     (msg, callback, predicate=null) ->
       doIf (1 <= msg.length and predicate) or (2 <= msg.length and not predicate), "invalid with: #{msg}", callback, ->
         if not predicate
-          [ what ] = msg.splice 0, 1
+          [ what, msg... ] = msg
           predicate = selector.fetch(what)
         #
+        [cmd, msg...] = msg
         tabDo predicate,
           # `eachTab`.
           (win, tab, callback) ->
-            [ cmd ] = msg
             if cmd and tabOperations[cmd]
-              tabOperations[cmd] msg[1..], tab, callback
+              tabOperations[cmd] msg, tab, callback
             else
               echoErr "invalid with command: #{cmd}", true
           # `done`.
-          (count) ->
-            callback()
+          (count) -> callback()
 
   # Apply one of `tabOperations` to all *not* matching tabs.
   without:
     (msg, callback) ->
       doIf 2 <= msg.length, "invalid without: #{msg}", callback, =>
-        [ what ] = msg.splice 0, 1
+        [ what , msg... ] = msg
         @with msg, callback, (win,tab) -> not selector.fetch(what) win, tab
 
   ping:
@@ -308,23 +309,23 @@ generalOperations =
       doIf msg.length == 0, "invalid ping: #{msg}", callback, ->
         ws.do "", [], (response) -> callback()
 
-  # Output a list of all chrome bookmarks.  Each output line is of the form "URL title".
+  # Output a list of all chrome bookmarks.  Each output line is of the form "URL title", by default.
   bookmarks:
     (msg, callback, output = (bm) -> echo "#{bm.url} #{bm.title}" ) ->
       doIf msg.length == 0, "invalid bookmarks: #{msg}", callback, =>
         recursiveBookmarks =
-          (msg, callback, output, bookmark=null) ->
+          (output, bookmark=null) ->
             if not bookmark
               ws.do "chrome.bookmarks.getTree", [],
                 (bookmarks) ->
-                  bookmarks.forEach (bmark) -> recursiveBookmarks msg, callback, output, bmark if bmark
+                  bookmarks.forEach (bmark) -> recursiveBookmarks output, bmark if bmark
                   callback()
             else
               output bookmark if bookmark.url and bookmark.title
               if bookmark.children
-                bookmark.children.forEach (bmark) -> recursiveBookmarks msg, callback, output, bmark
+                bookmark.children.forEach (bmark) -> recursiveBookmarks output, bmark
         #
-        recursiveBookmarks msg, callback, output
+        recursiveBookmarks output
 
   # A custom bookmark listing, just for smblott: "booky" support.
   booky: (msg, callback) ->
@@ -339,7 +340,7 @@ generalOperations =
 
 args = conf._
 
-# Might as well "ping" without any arguments.
+# "ping" seems to be a sensible default.
 args = [ "ping" ] if args.length == 0
 
 # If the command is in `tabOperations`, then add "with current" to the start of it.  This gives a sensible,
@@ -348,7 +349,7 @@ if args and args[0] and tabOperations[args[0]] and not generalOperations[args[0]
   args.unshift "with", "current"
 
 # Try to do the work.
-[ cmd ] = args.splice(0,1)
+[ cmd, args... ] = args
 if cmd and generalOperations[cmd]
   generalOperations[cmd] args, (code=0) -> process.exit code
 
