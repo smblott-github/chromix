@@ -224,6 +224,14 @@ chromix with http://www.bbc.co.uk/news/ reload
 ```
 Reload the indicated tab.
 
+#### Duplicate
+
+```
+chromix with current duplicate
+```
+Duplicate a tab.  Chromix can duplicate many tabs at once, but duplicating the
+current tab is probably the most useful case.
+
 #### ReloadWithoutCache
 
 ```

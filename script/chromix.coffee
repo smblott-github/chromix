@@ -245,6 +245,12 @@ tabOperations =
         echo "#{tab.id} #{tab.url} #{tab.title}"
         callback()
 
+  # Reload tab.
+  duplicate:
+    ( msg, tab, callback) ->
+      doIf msg.length == 0, "invalid duplicate: #{msg}", callback, ->
+        ws.do "chrome.tabs.duplicate", [ tab.id ], tabCallback tab, "duplicate", callback
+        
 generalOperations =
 
   # Ensure chrome has at least one window open.
