@@ -104,10 +104,10 @@ class WS
             when "done"
               @callback msgId, response
             when "error"
-              # TODO: What to do here?  Just exit?
-              @callback msgId
+              echoErr msg.join(" "), true # Exits.
             else
-              echoErr msg
+              # Should not happen?
+              echoErr msg.join(" "), true # Exits.
 
   # Send a request to chrome.
   # If the websocket is ready, then the request is sent immediately.  Otherwise, it is queued
@@ -313,7 +313,7 @@ generalOperations =
   ping:
     (msg, callback) ->
       doIf msg.length == 0, "invalid ping: #{msg}", callback, ->
-        ws.do "", [], (response) -> callback()
+        ws.do "ping", [], (response) -> callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title", by default.
   bookmarks:
