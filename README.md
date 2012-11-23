@@ -191,6 +191,13 @@ chromix window
 This ensures that there is at least one normal Chrome window.  It does not
 start Chrome if Chrome is not running.
 
+#### New Tab
+
+```
+chromix newTab
+```
+Create a new, empty tab, creating a new window, if necessary.
+
 #### Bookmarks
 
 ```

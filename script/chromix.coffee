@@ -189,7 +189,8 @@ requireWindow = (callback) ->
     # eachTab (a no-op, here).
     (win, tab, callback) -> callback()
     # Done.
-    (count) -> if 0 < count then callback() else ws.do "chrome.windows.create", [{}], (response) -> callback()
+    # `callback` argument: `true` if window created, `false` otherwise.
+    (count) -> if 0 < count then callback false else ws.do "chrome.windows.create", [{}], (response) -> callback true
 
 # Call `work` if test is true, otherwise output error `errMsg` and call `callback`.
 doIf = (test, errMsg, callback, work) ->
@@ -266,7 +267,7 @@ generalOperations =
     (msg, callback) ->
       doIf msg.length == 1, "invalid load: #{msg}", callback, ->
         [ url ] = msg
-        requireWindow ->
+        requireWindow (created) ->
           tabDo selector.fetch(url),
             # `eachTab`.
             (win, tab, callback) ->
@@ -279,9 +280,14 @@ generalOperations =
                 ws.do "chrome.tabs.create", [{ url: url }],
                   (response) ->
                     echo "done create: #{url}"
-                    callback()
+                    if created
+                      # A new window was created: so close the automatically created "New Tab".
+                      generalOperations.with [ "^chrome://newtab/", "close" ], -> callback()
+                    else
+                      # No new window was created: so we're done.
+                      callback()
               else
-                # We're done.
+                # Tab found: so we're done.
                 callback()
 
   # Apply one of `tabOperations` to all matching tabs.
@@ -314,6 +320,21 @@ generalOperations =
     (msg, callback) ->
       doIf msg.length == 0, "invalid ping: #{msg}", callback, ->
         ws.do "ping", [], (response) -> callback()
+
+  newTab:
+    (msg, callback) ->
+      doIf msg.length == 0, "invalid newTab: #{msg}", callback, ->
+        url = "chrome://newtab/"
+        requireWindow (created) ->
+          if created
+            # A new window was created: so a new, empty tab will have been created too, so we're done.
+            callback()
+          else
+            # Using an existing window: create a new tab.
+            ws.do "chrome.tabs.create", [{ url: url }],
+              (response) ->
+                echo "done create new tab: #{url}"
+                callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title", by default.
   bookmarks:
