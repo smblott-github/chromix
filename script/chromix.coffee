@@ -360,7 +360,9 @@ generalOperations =
           msg = msg.map JSON.parse
         catch error
           echoErr "json parse error: #{msg}"
-        ws.do cmd, msg, callback
+        ws.do cmd, msg, (response) ->
+          echo response
+          callback()
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title", by default.
   bookmarks:
