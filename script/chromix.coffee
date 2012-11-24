@@ -252,6 +252,16 @@ tabOperations =
       doIf msg.length == 0, "invalid duplicate: #{msg}", callback, ->
         ws.do "chrome.tabs.duplicate", [ tab.id ], tabCallback tab, "duplicate", callback
         
+  pin:
+    ( msg, tab, callback) ->
+      doIf msg.length == 0, "invalid pin: #{msg}", callback, ->
+        ws.do "chrome.tabs.update", [ tab.id, { pinned: true } ], tabCallback tab, "pin", callback
+
+  unpin:
+    ( msg, tab, callback) ->
+      doIf msg.length == 0, "invalid unpin: #{msg}", callback, ->
+        ws.do "chrome.tabs.update", [ tab.id, { pinned: false } ], tabCallback tab, "unpin", callback
+
 generalOperations =
 
   # Ensure chrome has at least one window open.
@@ -335,6 +345,22 @@ generalOperations =
               (response) ->
                 echo "done create new tab: #{url}"
                 callback()
+
+  # Direct access to the chrome API.
+  # First argument is a string representing the API function.
+  # Subsequent arguments are JSON encoded arguments for the function.
+  # Example:
+  #   - chromix raw chrome.tabs.update '{"pinned":true}'
+  #     (amazingly, this works ... even without a tab argument)
+  raw:
+    (msg, callback) ->
+      doIf msg.length <= 2, "invalid raw: #{msg}", callback, ->
+        [ cmd, msg... ] = msg
+        try
+          msg = msg.map JSON.parse
+        catch error
+          echoErr "json parse error: #{msg}"
+        ws.do cmd, msg, callback
 
   # Output a list of all chrome bookmarks.  Each output line is of the form "URL title", by default.
   bookmarks:

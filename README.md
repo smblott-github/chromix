@@ -198,6 +198,17 @@ chromix newTab
 ```
 Create a new, empty tab, creating a new window, if necessary.
 
+#### Raw
+
+```
+chromix raw chrome.tabs.update '{"pinned":true}'
+```
+Pass raw function and arguments to Chrome.
+
+The first argument is the name of a Chrome function.  Subsequent arguments are
+JSON encoded arguments to the function. (The outer quotes `'`, here, are just
+protecting the JSON from shell expansion.)
+
 #### Bookmarks
 
 ```
@@ -270,6 +281,20 @@ chromix with chrome list
 ```
 List all open Chrome tabs to standard output, one per line.  The output format
 is: the tab identifier, the URL and the title.
+
+#### Pin
+
+```
+chromix with current pin
+```
+Pin tab.
+
+#### Unpin
+
+```
+chromix with current unpin
+```
+Unpin tab.
 
 Notes
 -----
