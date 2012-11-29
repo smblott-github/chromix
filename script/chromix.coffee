@@ -308,7 +308,7 @@ generalOperations =
           [ what, msg... ] = msg
           predicate = selector.fetch(what)
         #
-        [cmd, msg...] = msg
+        [ cmd, msg... ] = msg
         tabDo predicate,
           # `eachTab`.
           (win, tab, callback) ->
