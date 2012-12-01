@@ -278,9 +278,10 @@ generalOperations =
       doIf msg.length == 1, "invalid load: #{msg}", callback, ->
         [ url ] = msg
         # Strip any trailing query for search.
+        # (Disabled).
         urlNoQuery = url
-        qIndex = urlNoQuery.indexOf "?"
-        urlNoQuery = urlNoQuery.substring 0, qIndex if 0 < qIndex
+        # qIndex = urlNoQuery.indexOf "?"
+        # urlNoQuery = urlNoQuery.substring 0, qIndex if 0 < qIndex
         #
         requireWindow (created) ->
           tabDo selector.fetch(urlNoQuery),
