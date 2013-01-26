@@ -61,6 +61,8 @@ class Selector
     # Synonyms.
     @selector.active   = (win,tab) => @fetch("current") win, tab
     @selector.inactive = (win,tab) => @fetch("other") win, tab
+    # Pinned?
+    @selector.pinned   = (win,tab) => tab.pinned
 
 selector = new Selector()
 
