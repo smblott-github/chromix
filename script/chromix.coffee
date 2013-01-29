@@ -4,6 +4,7 @@
 # Imports, arguments and constants.
 
 WebSocket = require "ws"
+Url       = require 'url'
 conf      = require "optimist" 
 conf      = conf.usage "Usage: $0 [--port=PORT] [--server=SERVER]" 
 conf      = conf.default "port", 7441 
@@ -275,6 +276,43 @@ generalOperations =
   # If there is no match, then create a new tab and load `url`.
   # When done, call `callback`.
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
+  loadOld:
+    (msg, callback) ->
+      doIf msg.length == 1, "invalid load: #{msg}", callback, ->
+        [ url ] = msg
+        # Strip any trailing query for search.
+        # (Disabled).
+        urlNoQuery = url
+        # qIndex = urlNoQuery.indexOf "?"
+        # urlNoQuery = urlNoQuery.substring 0, qIndex if 0 < qIndex
+        #
+        requireWindow (created) ->
+          tabDo selector.fetch(urlNoQuery),
+            # `eachTab`.
+            (win, tab, callback) ->
+              tabOperations.focus [], tab,
+                -> if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+            # `done`.
+            (count) ->
+              if count == 0
+                # No matches, so create tab.
+                ws.do "chrome.tabs.create", [{ url: url }],
+                  (response) ->
+                    echo "done create: #{url}"
+                    if created
+                      # A new window was created: so close the automatically created "New Tab".
+                      generalOperations.with [ "^chrome://newtab/", "close" ], -> callback()
+                    else
+                      # No new window was created: so we're done.
+                      callback()
+              else
+                # Tab found: so we're done.
+                callback()
+
+  # Locate all tabs matching `url` and focus them.  Normally, there should be just one match or none.
+  # If there is no match, then create a new tab and load `url`.
+  # When done, call `callback`.
+  # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
   load:
     (msg, callback) ->
       doIf msg.length == 1, "invalid load: #{msg}", callback, ->
@@ -282,6 +320,8 @@ generalOperations =
         # Strip any trailing query for search.
         # (Disabled).
         urlNoQuery = url
+        urlParsed = Url.parse url
+        console.log urlParsed.host
         # qIndex = urlNoQuery.indexOf "?"
         # urlNoQuery = urlNoQuery.substring 0, qIndex if 0 < qIndex
         #
