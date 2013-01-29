@@ -49,6 +49,9 @@ class Selector
     regexp = new RegExp pattern
     @selector[pattern] = (win,tab) -> win.type == "normal" and regexp.test tab.url
 
+  host: (host) ->
+    (win,tab) -> Url.parse(tab.url)?.host is host
+
   constructor: ->
     @selector.window   = (win,tab) -> win.type == "normal"
     @selector.all      = (win,tab) => @fetch("window")(win,tab)
@@ -64,6 +67,7 @@ class Selector
     @selector.inactive = (win,tab) => @fetch("other") win, tab
     # Pinned?
     @selector.pinned   = (win,tab) => tab.pinned
+
 
 selector = new Selector()
 
@@ -276,7 +280,7 @@ generalOperations =
   # If there is no match, then create a new tab and load `url`.
   # When done, call `callback`.
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
-  loadOld:
+  load:
     (msg, callback) ->
       doIf msg.length == 1, "invalid load: #{msg}", callback, ->
         [ url ] = msg
@@ -313,24 +317,33 @@ generalOperations =
   # If there is no match, then create a new tab and load `url`.
   # When done, call `callback`.
   # If the URL of a matching tab is of the form "file://...", then the file is additionally reloaded.
-  load:
+  move:
     (msg, callback) ->
       doIf msg.length == 1, "invalid load: #{msg}", callback, ->
         [ url ] = msg
         # Strip any trailing query for search.
         # (Disabled).
         urlNoQuery = url
+        #
         urlParsed = Url.parse url
-        console.log urlParsed.host
+        if not urlParsed.host
+          return generalOperations.load msg, callback
+        doneMove  = false
         # qIndex = urlNoQuery.indexOf "?"
         # urlNoQuery = urlNoQuery.substring 0, qIndex if 0 < qIndex
         #
         requireWindow (created) ->
-          tabDo selector.fetch(urlNoQuery),
+          tabDo selector.host(urlParsed.host),
             # `eachTab`.
             (win, tab, callback) ->
-              tabOperations.focus [], tab,
-                -> if selector.fetch("file") win, tab then tabOperations.reload [], tab, callback else callback()
+              if not doneMove
+                doneMove = true
+                tabOperations.focus [], tab, ->
+                  if tab.url is url
+                    callback
+                  else
+                    tabOperations.goto msg, tab, callback
+
             # `done`.
             (count) ->
               if count == 0
@@ -340,7 +353,7 @@ generalOperations =
                     echo "done create: #{url}"
                     if created
                       # A new window was created: so close the automatically created "New Tab".
-                      generalOperations.with [ "^chrome://newtab/", "close" ], -> callback()
+                      generalOperations.with [ "^chrome://newtab/", "close" ], callback
                     else
                       # No new window was created: so we're done.
                       callback()
