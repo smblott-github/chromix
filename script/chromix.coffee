@@ -336,11 +336,13 @@ generalOperations =
           tabDo selector.host(urlParsed.host),
             # `eachTab`.
             (win, tab, callback) ->
-              if not doneMove
+              if doneMove
+                callback()
+              else
                 doneMove = true
                 tabOperations.focus [], tab, ->
                   if tab.url is url
-                    callback
+                    callback()
                   else
                     tabOperations.goto msg, tab, callback
 
