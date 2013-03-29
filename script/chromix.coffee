@@ -253,6 +253,13 @@ tabOperations =
         echo "#{tab.id} #{tab.url} #{tab.title}"
         callback()
 
+  # List tab details to stdout.
+  url:
+    ( msg, tab, callback) ->
+      doIf msg.length == 0, "invalid list: #{msg}", callback, ->
+        echo "#{tab.url}"
+        callback()
+
   # Reload tab.
   duplicate:
     ( msg, tab, callback) ->
