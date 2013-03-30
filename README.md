@@ -296,6 +296,19 @@ chromix with current unpin
 ```
 Unpin tab.
 
+#### Url
+
+```
+chromix url
+```
+Output the URL of the current tab.
+
+
+```
+chromix url | xsel
+```
+Copy the current URL to the X selection.
+
 Notes
 -----
 
