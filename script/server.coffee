@@ -4,13 +4,15 @@
 
 config =
   port: "7441" # For URI of server.
+  host: "localhost" # Bind to address
 
 # #####################################################################
 # Options ...
 
-args = require "optimist" 
-args = args.usage "Usage: $0 [--port=PORT]"
+args = require "optimist"
+args = args.usage "Usage: $0 [--port=PORT] [--host=ADDRESS]"
 args = args.default "port", config.port
+args = args.default "host", config.host
 args = args.argv
 
 # #####################################################################
@@ -23,7 +25,7 @@ echo  = (msg) -> print "#{msg}\n"
 # Web socket and handler ...
 
 WSS  = require("ws").Server
-wss  = new WSS { port: args.port }
+wss  = new WSS { port: args.port, host: args.host }
 cxs  = []
 
 handler = (msg) ->

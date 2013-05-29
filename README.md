@@ -76,6 +76,11 @@ The extension broadcasts a heartbeat every five seconds.  If everything is
 working correctly, then these heartbeats (and all other messages) appear on the
 server's standard output.
 
+By default, the server binds to localhost.  To expose the server to
+devices outside of your local machine, set the bind address:
+```
+node script/server.js --host=0.0.0.0
+```
 The server might beneficially be run under the control of a supervisor daemon
 such as [daemontools](http://cr.yp.to/daemontools.html) or
 [supervisord](http://supervisord.org/).
