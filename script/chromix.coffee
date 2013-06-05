@@ -46,8 +46,11 @@ class Selector
 
   fetch: (pattern) ->
     return @selector[pattern] if pattern of @selector
-    regexp = new RegExp pattern
-    @selector[pattern] = (win,tab) -> win.type == "normal" and regexp.test tab.url
+    if parseInt(pattern)
+      @selector[pattern] = (win,tab) -> tab.id == pattern
+    else
+      regexp = new RegExp pattern
+      @selector[pattern] = (win,tab) -> win.type == "normal" and regexp.test tab.url
 
   host: (host) ->
     (win,tab) -> Url.parse(tab.url)?.host is host
