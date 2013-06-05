@@ -157,9 +157,12 @@ be a [tab command](https://github.com/smblott-github/chromix#tab-commands).
 
 Tabs can be specified in a number of ways: `all`, `current`,
 `other`, `http` (including HTTPS), `file`, `ftp`, `normal` (meaning `http`,
-`file` or `ftp`), or `chrome` (meaning not `normal`).  Any other argument to
-`with` is taken to be a pattern which is used to match tabs.  Patterns may
-contain JavaScript RegExp operators.
+`file` or `ftp`), or `chrome` (meaning not `normal`).
+
+Any other argument to `with` is handled as follows.  If it is an integer
+(specifically, if a prefix is parseable with `parseInt`) then it matches the
+corresponding tab identifier. Otherwise, it is taken to be a pattern which is
+used to match tab URLs.  Patterns may contain JavaScript RegExp operators.
 
 Here are a couple of examples:
 ```
