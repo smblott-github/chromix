@@ -63,10 +63,16 @@
       if (pattern in this.selector) {
         return this.selector[pattern];
       }
-      regexp = new RegExp(pattern);
-      return this.selector[pattern] = function(win, tab) {
-        return win.type === "normal" && regexp.test(tab.url);
-      };
+      if (parseInt(pattern)) {
+        return this.selector[pattern] = function(win, tab) {
+          return tab.id === pattern;
+        };
+      } else {
+        regexp = new RegExp(pattern);
+        return this.selector[pattern] = function(win, tab) {
+          return win.type === "normal" && regexp.test(tab.url);
+        };
+      }
     };
 
     Selector.prototype.host = function(host) {
