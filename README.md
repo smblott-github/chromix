@@ -62,6 +62,12 @@ the CoffeeScript source to JavaScript.
 on how the install is handled, you may have to search out where `npm` has
 installed `cake`.
 
+### Workaround
+
+As of 15/8/2013, a snapshot of the two compiled JavaScript files has been
+placed in the `snapshots` directory.  These may be used directly, obviating the
+need install and compile CoffeeScript.  I'll update these from time to time.
+
 ### Extension Installation
 
 Install [Chromi](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo).
