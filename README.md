@@ -267,7 +267,7 @@ current tab is probably the most useful case.
 #### ReloadWithoutCache
 
 ```
-chromix with http://www.bbc.co.uk/news/ reloadWithoutcache
+chromix with http://www.bbc.co.uk/news/ reloadWithoutCache
 ```
 Reload the indicated tab, but bypass the cache.
 
