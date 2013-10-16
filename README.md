@@ -163,7 +163,7 @@ be a [tab command](https://github.com/smblott-github/chromix#tab-commands).
 
 Tabs can be specified in a number of ways: `all`, `current`,
 `other`, `http` (including HTTPS), `file`, `ftp`, `normal` (meaning `http`,
-`file` or `ftp`), or `chrome` (meaning not `normal`).
+`file` or `ftp`), `pinned`, or `chrome` (meaning not `normal`).
 
 Any other argument to `with` is handled as follows.  If it is an integer
 (specifically, if a prefix is parseable with `parseInt`) then it matches the
@@ -190,12 +190,18 @@ This closes all windows *except* those within the Facebook domain.
 `without normal` is the same as `with chrome`, and `without current` is the
 same as `with other`.
 
-Here's another example
+Here's another example:
 ```
 chromix without "file://$HOME" close
 ```
 This closes all tabs *except* those containing files under the user's home
 directory.
+
+And another example:
+```
+chromix without pinned close
+```
+This closes all unpinned tabs.
 
 #### Window
 
