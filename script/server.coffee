@@ -1,10 +1,15 @@
 
+
 # #####################################################################
 # Configurables ...
 
+home   = process.env.HOME
 config =
-  port: "7441" # For URI of server.
-  host: "localhost" # Bind to address
+  port:  7441
+  host: "localhost"
+  dir:  "#{home}/.chromix_server"
+  sock: "#{home}/.chromix_server/chromix_server.sock"
+  debug: false
 
 # #####################################################################
 # Options ...
@@ -14,7 +19,11 @@ args = optimist.usage("Usage: $0 [--port=PORT] [--host=ADDRESS]")
   .alias("h", "help")
   .default("port", config.port)
   .default("host", config.host)
+  .default("debug", config.debug)
   .argv
+
+if args.debug
+  args.port += 1
 
 # #####################################################################
 # Display usage ...
@@ -51,4 +60,28 @@ wss.on "connection",
   (ws) ->
     cxs.push ws
     ws.on "message", handler
+
+# #####################################################################
+# Unix domain socket...
+
+fs  = require "fs"
+net = require 'net'
+
+if not fs.existsSync config.dir
+  fs.mkdirSync config.dir, 0o0700
+
+if fs.existsSync config.sock
+  fs.unlinkSync config.sock
+
+server = net.createServer (c) ->
+  echo 'server connected'
+
+  c.on 'end', ->
+    echo 'server disconnected'
+
+  c.write 'hello\r\n'
+  c.pipe c
+
+server.listen config.sock, ->
+  echo 'server bound'
 
