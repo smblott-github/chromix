@@ -30,43 +30,17 @@ Chromix involves three components:
     Chromi is packaged separately.  It is available either at the [Chrome Web
     Store](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo)
     or from [GitHub](https://github.com/smblott-github/chromi).
-  - A server: `script/server.{coffee,js}`.
-  - A client: `script/chromix.{coffee,js}`.  
+  - A server: `chromix-server`.
+  - A client: `chromix`.  
     This is Chromix's command-line and scripting utility.
 
 This project provides the Chromix server and client.
 
-There's an explanation of how these three components interact (including an
-example) on the [Chromi site](https://github.com/smblott-github/chromi#details).
+To install:
 
-### Dependencies
-
-Dependencies include, but may not be limited to:
-
-  - [Node.js](http://nodejs.org/)  
-    (Install with your favourite package manager, perhaps something like `sudo apt-get install node`.)
-  - [Coffeescript](http://coffeescript.org/)  
-    (Install with something like `npm install coffee-script`.)
-  - [Optimist](https://github.com/substack/node-optimist)  
-    (Install with something like `npm install optimist`.)
-  - The [ws](http://einaros.github.com/ws/) web socket implementation  
-    (Install with something like `npm install ws`.)
-
-### Build
-
-[Download](https://github.com/smblott-github/chromix/downloads) the package,
-unpack it and run `cake build` in the project's root folder.  This "compiles"
-the CoffeeScript source to JavaScript.
-
-`cake` is installed by `npm` as part of the `coffee-script` package.  Depending
-on how the install is handled, you may have to search out where `npm` has
-installed `cake`.
-
-### Workaround
-
-As of 15/8/2013, a snapshot of the two compiled JavaScript files has been
-placed in the `snapshots` directory.  These may be used directly, obviating the
-need install and compile CoffeeScript.  I'll update these from time to time.
+```
+npm install chromix
+```
 
 ### Extension Installation
 
@@ -74,38 +48,36 @@ Install [Chromi](https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhb
 
 ### Server Installation
 
+The server executable is installed by the NPM module.
 The server can be run with an invocation such as:
+
 ```
-node script/server.js
+chromix-server
 ```
+
 The extension broadcasts a heartbeat every five seconds.  If everything is
 working correctly, then these heartbeats (and all other messages) appear on the
 server's standard output.
 
 By default, the server binds to localhost.  To expose the server to
 devices outside of your local machine, set the bind address:
+
 ```
 node script/server.js --host=0.0.0.0
 ```
+
 The server might beneficially be run under the control of a supervisor daemon
 such as [daemontools](http://cr.yp.to/daemontools.html) or
 [supervisord](http://supervisord.org/).
 
 ### Client Installation
 
-The JavaScript file (`script/chromix.js`) can be made executable and
-installed in some suitable directory on your `PATH`.
-
+The client executable is also installed by the NPM module.
 A chromix invocation looks something like:
-```
-node chromix.js CHROMIX-COMMAND [ARGUMENTS...]
-```
-Or, better still, install the wrapper shell script (see the bottom of this
-page) somewhere on your path.  Then, invocations look more like:
+
 ```
 chromix CHROMIX-COMMAND [ARGUMENTS...]
 ```
-(The following examples all assume that this `chromix` wrapper is used.)
 
 Chromix Commands
 ----------------

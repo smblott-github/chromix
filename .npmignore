@@ -1,0 +1,8 @@
+*.un~
+*.swo
+*.swp
+*.crx
+*.html
+node_modules/*
+README.md
+README.html
