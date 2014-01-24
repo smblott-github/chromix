@@ -1,5 +1,5 @@
 
-.PHONY: build snapshot
+.PHONY: build snapshot install
 
 script += chromix
 script += server
@@ -13,6 +13,10 @@ build: $(jss)
 
 snapshot: $(jss) $(addsuffix .js, $(addprefix snapshots/, $(script)))
 	@true
+
+install:
+	$(MAKE) snapshot
+	sudo npm install -g .
 
 %.js: %.coffee
 	coffee --compile $<
