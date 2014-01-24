@@ -1,11 +1,26 @@
 
-build:
-	cake build
+.PHONY: build snapshot install
 
-auto:
-	cake autobuild
+script += chromix
+script += server
 
-snapshot:
-	$(MAKE) build
-	sed '1 s@^@#!/usr/bin/env node\n@' script/chromix.js > ./snapshots/chromix.js
-	sed '1 s@^@#!/usr/bin/env node\n@' script/server.js  > ./snapshots/server.js
+roots = $(addprefix script/, $(script))
+src   = $(addsuffix .coffee, $(roots))
+jss   = $(addsuffix .js, $(roots))
+
+build: $(jss)
+	@true
+
+snapshot: $(jss) $(addsuffix .js, $(addprefix snapshots/, $(script)))
+	@true
+
+install:
+	$(MAKE) snapshot
+	sudo npm install -g .
+
+%.js: %.coffee
+	coffee --compile $<
+
+snapshots/%.js: script/%.js
+	sed '1 s@^@#!/usr/bin/env node\n@' $< > $@
+
