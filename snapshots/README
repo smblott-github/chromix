@@ -1,6 +1,0 @@
-The JavaScript files in this directory are just snapshots of compiled versions
-of the CoffeeScript files in ../scripts.  Use these if you don't have
-CoffeeScript, or can't get the compiler to work.
-
-Snapped: 130815.
-

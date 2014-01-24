@@ -2,6 +2,5 @@
 *.swo
 *.swp
 *.crx
-*.js
 *.html
 node_modules/*

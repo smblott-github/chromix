@@ -7,4 +7,5 @@ auto:
 
 snapshot:
 	$(MAKE) build
-	install -vm 0444 script/server.js script/chromix.js snapshots/
+	sed '1 s@^@#!/usr/bin/env node\n@' script/chromix.js > ./snapshots/chromix.js
+	sed '1 s@^@#!/usr/bin/env node\n@' script/server.js  > ./snapshots/server.js

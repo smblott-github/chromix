@@ -1,0 +1,12 @@
+*.un~
+*.swo
+*.swp
+*.crx
+*.html
+node_modules/*
+README.html
+README.md
+Cakefile
+extra
+Makefile
+script
