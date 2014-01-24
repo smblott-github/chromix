@@ -324,16 +324,7 @@ is shorthand for:
 chromix ping
 ```
 
-### Wrapper
-
-The helper script `extra/chromix` may prove helpful.  To use it, set the
-environment variable `CHROMIX` appropriately and install the helper script in
-some suitable directory on your `PATH`.
-
 ## Closing Comments
-
-Chromix is a work in progress and may be subject to either gentle evolution or
-abrupt change.
 
 Please post an "Issue" if you have ideas for improving Chromix.
 
