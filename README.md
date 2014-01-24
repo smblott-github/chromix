@@ -1,5 +1,4 @@
-Chromix
-=======
+# Chromix
 
 Chromix is a command-line and scripting utility for controlling Google chrome.  It can be
 used, amongst other things, to create, switch, focus, reload and remove tabs.
@@ -21,8 +20,7 @@ Jump straight to
 [here](https://github.com/smblott-github/chromix#chromix-commands) for a list
 of available commands.
 
-Installation
-------------
+## Installation
 
 Chromix involves three components:
 
@@ -79,8 +77,7 @@ A chromix invocation looks something like:
 chromix CHROMIX-COMMAND [ARGUMENTS...]
 ```
 
-Chromix Commands
-----------------
+## Chromix Commands
 
 There are two types of Chromix commands: 
 [general commands](https://github.com/smblott-github/chromix#general-commands) and
@@ -301,8 +298,7 @@ chromix url | xsel
 ```
 Copy the current URL to the X selection.
 
-Notes
------
+## Notes
 
 ### Implicit `with` in Tab Commands
 
@@ -334,8 +330,7 @@ The helper script `extra/chromix` may prove helpful.  To use it, set the
 environment variable `CHROMIX` appropriately and install the helper script in
 some suitable directory on your `PATH`.
 
-Closing Comments
-----------------
+## Closing Comments
 
 Chromix is a work in progress and may be subject to either gentle evolution or
 abrupt change.
