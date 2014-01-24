@@ -1,6 +1,6 @@
 {
    "name": "chromix",
-   "version": "0.1.4",
+   "version": "0.1.6",
    "author": "Stephen Blott <smblott@gmail.com>",
    "description": "Chromix is a command-line and scripting utility for controlling Google chrome. It can be used, amongst other things, to create, switch, focus, reload and remove tabs.",
    "homepage": [
@@ -16,8 +16,8 @@
       "prepublish": "make snapshot"
    },
    "bin": {
-      "chromix": "./bin/chromix",
-      "chromix-server": "./bin/chromix-server"
+      "chromix": "./snapshots/chromix.js",
+      "chromix-server": "./snapshots/server.js"
    },
    "keywords": [ "chrome", "chromi", "extension", "cli", "command", "line" ],
    "dependencies": {

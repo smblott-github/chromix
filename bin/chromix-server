@@ -1,7 +1,0 @@
-#!/bin/sh
-
-exe=$(which "$0")
-bin=$(dirname "$exe")
-snaps="$bin/../lib/node_modules/chromix/snapshots"
-
-exec node "$snaps/server.js" "$@"

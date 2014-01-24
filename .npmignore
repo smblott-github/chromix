@@ -4,5 +4,9 @@
 *.crx
 *.html
 node_modules/*
-README.md
 README.html
+README.md
+Cakefile
+extra
+Makefile
+script
