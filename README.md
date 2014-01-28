@@ -37,7 +37,7 @@ This project provides the Chromix server and client.
 To install:
 
 ```
-npm install chromix
+sudo npm install -g chromix
 ```
 
 ### Extension Installation
