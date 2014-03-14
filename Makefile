@@ -1,5 +1,5 @@
 
-.PHONY: build snapshot install
+.PHONY: build snapshot install publish
 
 script += chromix
 script += server
@@ -23,4 +23,7 @@ install:
 
 snapshots/%.js: script/%.js
 	sed '1 s@^@#!/usr/bin/env node\n@' $< > $@
+
+publish:
+	npm publish .
 
