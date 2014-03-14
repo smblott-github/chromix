@@ -1,18 +1,23 @@
 #!/bin/sh
 
-if ! which sed > /dev/null
+have ()
+{
+   which $1 > /dev/null 2>&1
+}
+
+if ! have sed
 then
    exit 0
 fi
 
-node='node'
-nodejs='nodejs'
-
-if ! which $node && which $nodejs
-then
-   node=$nodejs
-fi > /dev/null 2>&1
-
-sed -i "1 s@.*@#!/usr/bin/env $node@" snapshots/*.js
+for node in node nodejs
+do
+   if have $node
+   then
+      sed -i "1 s@.*@#!/usr/bin/env $node@" snapshots/*.js
+      echo "chromix: using $node" >&2
+      exit 0
+   fi
+done
 
 exit 0
