@@ -1,21 +1,18 @@
 #!/bin/sh
 
-have ()
+have_executable ()
 {
    which $1 > /dev/null 2>&1
 }
 
-if ! have sed
-then
-   exit 0
-fi
+have_executable sed \
+   || exit 0
 
 for node in node nodejs
 do
-   if have $node
+   if have_executable $node
    then
       sed -i "1 s@.*@#!/usr/bin/env $node@" snapshots/*.js
-      echo "chromix: using $node" >&2
       exit 0
    fi
 done
