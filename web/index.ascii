@@ -1,0 +1,471 @@
+= PodRecast =
+Stephen Blott <smblott+chromix@gmail.com>
+:toc2:
+
+// /////////////////////////////////////////////////////
+== Introduction ==
+
+
+****
+`chromix` is a command-line and scripting utility for controlling Google chrome.  It can be
+used, amongst other things, to create, switch, focus, reload and remove tabs.
+****
+
+****
+Here's a use case.  Say you're editing an
+http://www.methods.co.nz/asciidoc/userguide.html[asciidoc] or a
+http://daringfireball.net/projects/markdown/[markdown] document.  The work
+flow is: edit, compile, and reload the chrome tab to see your changes.
+
+`chromix` can automate this, particularly the last step.  Change the build step to:
+
+[source, sh]
+----
+ markdown somefile.md > somefile.html && chromix load file://$PWD/somefile.html
+----
+
+Now, chrome reloads your work every time it changes.  And with suitable key
+bindings in your text editor, the build-view process can involve just a couple
+of key strokes.
+****
+
+// /////////////////////////////////////////////////////
+== Installation ==
+
+****
+`chromix` involves three components:
+
+  - A chrome extension known as https://github.com/smblott-github/chromi[chromi]. +
+    Chromi is packaged separately.  It is available either at the https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo[chrome web store]
+    or from https://github.com/smblott-github/chromi[GitHub].
+  - A server: `chromix-server`.
+  - A client: `chromix`.   +
+    This is the `chromix` command-line and scripting utility.
+****
+
+// /////////////////////////////////////////////////////
+=== Extension Installation ===
+
+****
+Install https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo[chromi].
+
+The source code for `chromi` is available on
+https://github.com/smblott-github/chromi[GitHub].
+****
+
+// /////////////////////////////////////////////////////
+=== Server Installation ===
+
+****
+The server executable is most easily installed via `npm`:
+
+[source, sh]
+----
+sudo npm install -g chromix
+----
+
+The server can then be run with an invocation such as:
+
+[source, sh]
+----
+chromix-server
+----
+
+The extension broadcasts a heartbeat every five seconds.  If everything is
+working correctly, then these heartbeats (and all other messages) appear on the
+server's standard output.
+****
+
+****
+By default, the server binds to localhost.  To expose the server to
+devices outside of your local machine, set the bind address:
+
+[source, sh]
+----
+node script/server.js --host=0.0.0.0
+----
+****
+
+****
+The server might beneficially be run under the control of a supervisor daemon
+such as http://cr.yp.to/daemontools.html[daemontools] or
+http://supervisord.org/[supervisord].
+****
+
+// /////////////////////////////////////////////////////
+=== Client Installation ===
+
+****
+The client executable (`chromix`) is also installed by the npm module; see
+above.
+
+A `chromix` invocation looks something like:
+
+[source, sh]
+----
+chromix CHROMIX-COMMAND [ARGUMENTS...]
+----
+****
+
+// /////////////////////////////////////////////////////
+== Chromix Commands ==
+
+There are two types of `chromix` commands: 
+link:#general-commands[general commands] and
+link:#tab-commands[tab commands].  The
+latter group operate on tabs.
+
+[[general-commands]]
+=== General Commands ===
+
+==== Ping
+
+****
+[source, sh]
+----
+chromix ping
+----
+
+This produces no output, but yields an exit code of `0` if `chromix` was able to
+ping chromi/chrome, and non-zero otherwise.  It can be useful in scripts for checking
+whether chromi/chrome is running.
+
+This is the default command if no arguments are provided to `chromix`, so the
+`ping`, above, can be omitted.
+****
+
+==== Load
+
+****
+[source, sh]
+----
+chromix load https://github.com/
+----
+
+This first searches for a tab for which `https://github.com/` is contained in
+the tab's URL.  If such a tab is found, it is focussed.  Otherwise, a new tab
+is created for the URL.
+
+Additionally, if the URL is of the form `file://.*`, then the tab is
+reloaded.
+
+If chrome is running but has no window, then a new window will be created.
+However, if chrome is not running, then `chromix` will *not* start it.
+****
+
+==== With
+
+****
+[source, sh]
+----
+chromix with other close
+----
+
+This closes all tabs except the currently focused one.
+
+[source, sh]
+----
+chromix with chrome close
+----
+
+This closes all tabs which aren't `http://`, `file://` or `ftp://`.
+****
+
+****
+The first argument to `with` specifies the tabs to which the rest of the command applies.
+(`other`, above,  means "all non-focused tabs").  The rest of the command must
+be a link:#tab-commands[tab command].
+
+Tabs can be specified in a number of ways: `all`, `current`,
+`other`, `http` (including HTTPS), `file`, `ftp`, `normal` (meaning `http`,
+`file` or `ftp`), `pinned`, or `chrome` (meaning not `normal`).
+
+Any other argument to `with` is handled as follows:
+
+- If it is an integer (specifically, if a prefix is parseable with `parseInt`) then it matches the corresponding tab identifier.
+- Otherwise, it is taken to be a pattern which is used to match tab URLs.  Patterns may contain JavaScript RegExp operators.
+****
+
+****
+Here are a couple of examples:
+
+[source, sh]
+----
+chromix with "file:///.*/slidy/.*.html" reload
+chromix with "file://$HOME" reload
+----
+
+The first reloads all tabs containing HTML files under directories named
+`slidy`.  The second reloads all tabs containing files under the user's home
+directory.
+****
+
+==== Without
+
+****
+[source, sh]
+----
+chromix without https://www.facebook.com/ close
+----
+
+This closes all windows except those within the Facebook domain.
+****
+
+****
+`without` is the same as `with`, except that the test is inverted.  So
+`without normal` is the same as `with chrome`, and `without current` is the
+same as `with other`.
+
+[source, sh]
+----
+chromix without "file://$HOME" close
+----
+
+This closes all tabs except those containing files under the user's home
+directory.
+
+[source, sh]
+----
+chromix without pinned close
+----
+
+This closes all unpinned tabs.
+****
+
+==== Window
+
+****
+[source, sh]
+----
+chromix window
+----
+
+This ensures that there is at least one normal chrome window.  It does not
+start chrome if chrome is not running.
+****
+
+==== New Tab
+
+****
+[source, sh]
+----
+chromix newTab
+----
+
+Create a new, empty tab, creating a new window, if necessary.
+****
+
+==== Raw
+
+****
+[source, sh]
+----
+chromix raw chrome.tabs.update '{"pinned":true}'
+----
+
+Pass raw function and arguments to chrome.
+
+The first argument is the name of a chrome function.  Subsequent arguments are
+JSON encoded arguments to the function. (The outer quotes `'`, here, are just
+protecting the JSON from shell expansion.)
+****
+
+==== Bookmarks
+
+****
+[source, sh]
+----
+chromix bookmarks
+----
+
+This outputs (to `stdout`) a list of all of chrome's bookmarks, one per line.
+****
+
+==== Booky
+
+****
+[source, sh]
+----
+chromix booky
+----
+
+This outputs (to `stdout`) a list of (some of) chrome's bookmarks, but in a different format.
+****
+
+[[tab-commands]]
+=== Tab Commands ===
+
+****
+Tab commands operate on one or more tabs.  They are usually used with `with` or
+`without`, above.
+****
+
+==== Focus
+
+****
+[source, sh]
+----
+chromix with http://www.bbc.co.uk/news/ focus
+----
+
+Focus the indicated tab.
+****
+
+==== Reload
+
+****
+[source, sh]
+----
+chromix with http://www.bbc.co.uk/news/ reload
+----
+
+Reload the indicated tab.
+****
+
+==== Duplicate
+
+****
+[source, sh]
+----
+chromix with current duplicate
+----
+
+Duplicate a tab.  `chromix` can duplicate many tabs at once, but duplicating the
+current tab is probably the most useful case.
+****
+
+==== ReloadWithoutCache
+
+****
+[source, sh]
+----
+chromix with http://www.bbc.co.uk/news/ reloadWithoutCache
+----
+
+Reload the indicated tab, but bypass the cache.
+****
+
+==== Close
+
+****
+[source, sh]
+----
+chromix with http://www.bbc.co.uk/news/ close
+----
+
+Close the indicated tab.
+****
+
+==== Goto
+
+****
+[source, sh]
+----
+chromix with current goto http://www.bbc.co.uk/news/
+----
+
+Visit `http://www.bbc.co.uk/news/` in the current tab.
+
+(The naming here is a little confusing.  Use `load` if you want to focus or switch
+to an existing tab.)
+****
+
+==== List
+
+****
+[source, sh]
+----
+chromix with chrome list
+----
+
+List all open chrome tabs to standard output, one per line.  The output format
+is: the tab identifier, the URL and the title.
+****
+
+==== Pin
+
+****
+[source, sh]
+----
+chromix with current pin
+----
+
+Pin the current tab.
+****
+
+==== Unpin
+
+****
+[source, sh]
+----
+chromix with current unpin
+----
+
+Unpin the current tab.
+****
+
+==== Url
+
+****
+[source, sh]
+----
+chromix url
+----
+
+Output the URL of the current tab.
+****
+
+****
+[source, sh]
+----
+chromix url | xsel
+----
+
+Copy the current URL to the X selection (super useful).
+****
+
+== Notes ==
+
+=== Implicit `with` in Tab Commands ===
+
+****
+If a tab command is used without a preceding `with` clause, then the current tab is assumed.
+
+So, the following:
+
+[source, sh]
+----
+chromix goto http://www.bbc.co.uk/news/
+----
+
+is shorthand for:
+[source, sh]
+----
+chromix with current goto http://www.bbc.co.uk/news/
+----
+****
+
+=== Implicit `ping` ===
+
+****
+If *no* command is provided, then `ping` is assumed.  So:
+
+[source, sh]
+----
+chromix
+----
+
+is shorthand for:
+
+[source, sh]
+----
+chromix ping
+----
+****
+
+== Closing Comments
+
+Please post an "Issue" on
+https://github.com/smblott-github/chromix/issues?state=open[GitHub]
+if you have any problems, or ideas for improving `chromix`.
+
