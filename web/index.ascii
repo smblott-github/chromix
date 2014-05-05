@@ -1,4 +1,4 @@
-= PodRecast =
+= Chromix =
 Stephen Blott <smblott+chromix@gmail.com>
 :toc2:
 
@@ -354,6 +354,13 @@ chromix with http://www.bbc.co.uk/news/ close
 ----
 
 Close the indicated tab.
+
+[source, sh]
+----
+chromix without current close
+----
+
+This is super useful.  It closes all tabs except the current one.
 ****
 
 ==== Goto
