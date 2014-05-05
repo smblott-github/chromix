@@ -29,18 +29,36 @@ bindings in your text editor, the build-view process can involve just a couple
 of key strokes.
 ****
 
+.A selection of super useful commands:
+****
+[source, sh]
+----
+# duplicate the current tab
+chromix with current duplicate
+
+# close all but the current tab
+chromix without current close
+
+# copy the current url to the X selection
+chromix url | xsel
+----
+****
+
 // /////////////////////////////////////////////////////
 == Installation ==
 
 ****
 `chromix` involves three components:
 
-  - A chrome extension known as https://github.com/smblott-github/chromi[chromi]. +
-    Chromi is packaged separately.  It is available either at the https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo[chrome web store]
-    or from https://github.com/smblott-github/chromi[GitHub].
-  - A server: `chromix-server`.
-  - A client: `chromix`.   +
-    This is the `chromix` command-line and scripting utility.
+. A chrome extension known as https://github.com/smblott-github/chromi[chromi]. +
+  Chromi is packaged separately.  It is available either at the https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo[chrome web store]
+  or from https://github.com/smblott-github/chromi[GitHub].
+. A server: `chromix-server`.
+. A client: `chromix`.   +
+  This is the `chromix` command-line and scripting utility.
+
+The source code for the latter two is available in
+https://github.com/smblott-github/chromix[GitHub].
 ****
 
 // /////////////////////////////////////////////////////
@@ -48,9 +66,7 @@ of key strokes.
 
 ****
 Install https://chrome.google.com/webstore/detail/chromi/eeaebnaemaijhbdpnmfbdboenoomadbo[chromi].
-
-The source code for `chromi` is available on
-https://github.com/smblott-github/chromi[GitHub].
+// The source code for `chromi` is available on https://github.com/smblott-github/chromi[GitHub].
 ****
 
 // /////////////////////////////////////////////////////
@@ -110,10 +126,12 @@ chromix CHROMIX-COMMAND [ARGUMENTS...]
 // /////////////////////////////////////////////////////
 == Chromix Commands ==
 
+****
 There are two types of `chromix` commands: 
 link:#general-commands[general commands] and
 link:#tab-commands[tab commands].  The
 latter group operate on tabs.
+****
 
 [[general-commands]]
 === General Commands ===
@@ -263,7 +281,8 @@ Create a new, empty tab, creating a new window, if necessary.
 chromix raw chrome.tabs.update '{"pinned":true}'
 ----
 
-Pass raw function and arguments to chrome.
+Pass raw function and arguments to chrome.  In this case, this pins the
+current tab.
 
 The first argument is the name of a chrome function.  Subsequent arguments are
 JSON encoded arguments to the function. (The outer quotes `'`, here, are just
@@ -332,6 +351,8 @@ chromix with current duplicate
 
 Duplicate a tab.  `chromix` can duplicate many tabs at once, but duplicating the
 current tab is probably the most useful case.
+
+This is super useful.
 ****
 
 ==== ReloadWithoutCache
