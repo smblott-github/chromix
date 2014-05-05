@@ -5,7 +5,6 @@ Stephen Blott <smblott+chromix@gmail.com>
 // /////////////////////////////////////////////////////
 == Introduction ==
 
-
 ****
 `chromix` is a command-line and scripting utility for controlling Google chrome.  It can be
 used, amongst other things, to create, switch, focus, reload and remove tabs.
@@ -41,7 +40,12 @@ chromix without current close
 
 # copy the current url to the X selection
 chromix url | xsel
+
+# close all non-pinned tabs
+chromix without pinned close
 ----
+
+These and other commands can be bound to window-manager or text-editor keystrokes.  Personally, I use https://joeyh.name/code/pdmenu/[pdmenu].
 ****
 
 // /////////////////////////////////////////////////////
