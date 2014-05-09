@@ -4,6 +4,7 @@ include $(HOME)/.gnumake.mk
 .PHONY: build install
 
 target += index.html
+target += favicon.ico
 
 build: $(target)
 	@true
