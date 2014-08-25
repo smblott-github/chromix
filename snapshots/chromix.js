@@ -116,6 +116,9 @@
       this.selector.pinned = function(win, tab) {
         return tab.pinned;
       };
+      this.selector.pinnedOrCurrent = function(win, tab) {
+        return _this.selector.pinned(win, tab) || _this.selector.current(win, tab);
+      };
     }
 
     return Selector;
