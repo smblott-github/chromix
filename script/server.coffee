@@ -37,6 +37,7 @@ if args.help
 
 print = require('sys').print
 echo  = (msg) -> print "#{msg}\n"
+timeoutSet = (ms,callback) -> setTimeout callback, ms
 
 # #####################################################################
 # Web socket and handler ...
@@ -74,14 +75,15 @@ if fs.existsSync config.sock
   fs.unlinkSync config.sock
 
 server = net.createServer (c) ->
-  echo 'server connected'
+  c.on 'data', (d) ->
+    c.write "#{d} to you too"
 
-  c.on 'end', ->
-    echo 'server disconnected'
+server.listen config.sock
 
-  c.write 'hello\r\n'
-  c.pipe c
+timeoutSet 1000, ->
+  client = net.connect config.sock, ->
+    client.write "abbbbaaa"
 
-server.listen config.sock, ->
-  echo 'server bound'
+  client.on "data", (ans) ->
+    echo ans
 
