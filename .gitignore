@@ -3,4 +3,4 @@
 *.swp
 *.crx
 *.html
-node_modules/*
+node_modules

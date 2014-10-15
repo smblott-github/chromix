@@ -70,7 +70,7 @@ class Selector
     @selector.inactive = (win,tab) => @fetch("other") win, tab
     # Pinned?
     @selector.pinned   = (win,tab) => tab.pinned
-
+    @selector.pinnedOrCurrent   = (win,tab) => @selector.pinned(win,tab) or @selector.current(win,tab)
 
 selector = new Selector()
 
