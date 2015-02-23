@@ -9,8 +9,8 @@ target += favicon.ico
 build: $(target)
 	@true
 
-srv = smblott.org
-www = public_html/chromix/
+srv = smblott.computing.dcu.ie
+www = /home/www/smblott.org/chromix/
 
 install:
 	$(MAKE) build
