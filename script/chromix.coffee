@@ -427,7 +427,7 @@ generalOperations =
   #     (amazingly, this works ... even without a tab argument)
   raw:
     (msg, callback) ->
-      doIf msg.length <= 2, "invalid raw: #{msg}", callback, ->
+      doIf true, "invalid raw: #{msg}", callback, ->
         [ cmd, msg... ] = msg
         try
           msg = msg.map JSON.parse
