@@ -531,7 +531,7 @@
       });
     },
     raw: function(msg, callback) {
-      return doIf(msg.length <= 2, "invalid raw: " + msg, callback, function() {
+      return doIf(true, "invalid raw: " + msg, callback, function() {
         var cmd, error, _ref;
         _ref = msg, cmd = _ref[0], msg = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
         try {
