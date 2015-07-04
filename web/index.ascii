@@ -102,7 +102,7 @@ devices outside of your local machine, set the bind address:
 
 [source, sh]
 ----
-node script/server.js --host=0.0.0.0
+chromix-server --host=0.0.0.0
 ----
 ****
 
