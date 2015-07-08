@@ -26,8 +26,8 @@ if args.help
 # #####################################################################
 # Utilities ...
 
-print = require('sys').print
-echo  = (msg) -> print "#{msg}\n"
+print = console.log
+echo  = (msg) -> print "#{msg}"
 
 # #####################################################################
 # Web socket and handler ...
