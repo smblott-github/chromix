@@ -5,11 +5,11 @@
 
 WebSocket = require "ws"
 Url       = require 'url'
-conf      = require "optimist" 
-conf      = conf.usage "Usage: $0 [--port=PORT] [--server=SERVER]" 
-conf      = conf.default "port", 7441 
-conf      = conf.default "server", "localhost" 
-conf      = conf.default "timeout", "500" 
+conf      = require "optimist"
+conf      = conf.usage "Usage: $0 [--port=PORT] [--server=SERVER]"
+conf      = conf.default "port", 7441
+conf      = conf.default "server", "localhost"
+conf      = conf.default "timeout", "500"
 conf      = conf.argv
 
 chromi    = "chromi"
@@ -135,7 +135,7 @@ class WS
     #  Set timeout.  Timeouts are never cancelled.  If the request has successfully completed by the time the
     #  timeout fires, then the callback will already have been removed from the list of callbacks .. so it's
     #  safe.
-    setTimeout ( => process.exit 1 if @callbacks[id] ), conf.timeout 
+    setTimeout ( => process.exit 1 if @callbacks[id] ), conf.timeout
 
   # Invoke the callback for the indicated request `id`.
   callback: (id, argument=null) ->
@@ -223,19 +223,19 @@ tabOperations =
     ( msg, tab, callback) ->
       doIf msg.length == 0, "invalid focus: #{msg}", callback, ->
         ws.do "chrome.tabs.update", [ tab.id, { selected: true } ], tabCallback tab, "focus", callback
-        
+
   # Reload tab.
   reload:
     ( msg, tab, callback, bypassCache=false) ->
       doIf msg.length == 0, "invalid reload: #{msg}", callback, ->
         ws.do "chrome.tabs.reload", [ tab.id, {bypassCache: bypassCache} ], tabCallback tab, "reload", callback
-        
+
   # Reload tab -- but bypass cache.
   reloadWithoutCache:
     ( msg, tab, callback) ->
       doIf msg.length == 0, "invalid reloadWithoutCache: #{msg}", callback,
         => @reload msg, tab, callback, true
-        
+
   # Close tab.
   close:
     ( msg, tab, callback) ->
@@ -268,7 +268,7 @@ tabOperations =
     ( msg, tab, callback) ->
       doIf msg.length == 0, "invalid duplicate: #{msg}", callback, ->
         ws.do "chrome.tabs.duplicate", [ tab.id ], tabCallback tab, "duplicate", callback
-        
+
   pin:
     ( msg, tab, callback) ->
       doIf msg.length == 0, "invalid pin: #{msg}", callback, ->
