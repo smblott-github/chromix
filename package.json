@@ -8,7 +8,7 @@
    "licenses" : [ {"type" : "MIT" } ],  
    "engines" : { "node" : ">=0.4" },
    "keywords": [ "chrome", "chromi", "extension", "cli", "command", "line" ],
-   "dependencies": { "ws" :  "*", "optimist" :  "*" },
+   "dependencies": { "ws" :  "1.*", "optimist" :  "*" },
    "bin": {
       "chromix": "./snapshots/chromix.js",
       "chromix-server": "./snapshots/server.js"
